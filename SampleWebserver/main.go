@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,7 +17,6 @@ import (
 func tempRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 	r.AddFromFiles("index", "templates/base.html", "templates/welcome.html")
-	r.AddFromFiles("signup", "templates/base.html", "templates/signup.html")
 	r.AddFromFiles("login", "templates/base.html", "templates/login.html")
 	r.AddFromFiles("notfound", "templates/base.html", "templates/notfound.html")
 	return r
@@ -50,11 +47,6 @@ func main() {
 		c.HTML(200, "index", gin.H{})
 	})
 
-	// Present signup form
-	router.GET("/signup", func(c *gin.Context) {
-		c.HTML(200, "signup", gin.H{})
-	})
-
 	// Present login form
 	router.GET("/login", func(c *gin.Context) {
 		c.HTML(200, "login", gin.H{})
@@ -64,34 +56,7 @@ func main() {
 	router.GET("/notfound/", func(c *gin.Context) {
 		// Get type url parameter
 		// If param = "login" -> present invalid credentials, else present username already exists
-		login := c.Query("type")
-		if login == "login" {
-			c.HTML(200, "notfound", gin.H{"text": "Invalid credentials"})
-			return
-		}
-		c.HTML(200, "notfound", gin.H{"text": "Username already exists"})
-	})
-
-	// Process user signup
-	router.POST("/signup_user", func(c *gin.Context) {
-		// get form data
-		email := c.PostForm("email")
-		password := c.PostForm("password")
-		// hash password
-		data := []byte(password)
-		hash := md5.Sum(data)
-		newpass := hex.EncodeToString(hash[:])
-		// check if user already exists
-		users := []models.User{}
-		models.DB.Where("email = ?", email).Find(&users)
-		// if not, add to DB
-		if len(users) == 0 {
-			models.DB.Create(&models.User{Email: email, Password: newpass})
-			c.Redirect(http.StatusFound, "/")
-			return
-		}
-		// if exists, route to error page
-		c.Redirect(http.StatusFound, "/notfound")
+		c.HTML(200, "notfound", gin.H{"text": "Invalid credentials"})
 	})
 
 	// Process user login
@@ -101,11 +66,12 @@ func main() {
 		if token != "" {
 			// Set token to cookie & send back home
 			c.SetCookie("token", token, 48*60, "/", "", false, false)
-			c.Redirect(http.StatusFound, "/")
+			// c.Redirect(http.StatusFound, "/")
+			c.JSON(200, gin.H{"token": token})
 			return
 		}
 		// redirect to error page
-		c.Redirect(http.StatusFound, "/notfound?type=login")
+		c.Redirect(http.StatusFound, "/notfound")
 	})
 
 	// Logout user
