@@ -45,7 +45,7 @@ func main() {
 			continue
 		}
 
-		resp, err := http.Post("http://127.0.0.1:8080/", "application/Protobuf", bytes.NewBuffer(data))
+		resp, err := http.Post("http://localhost:8080/", "application/Protobuf", bytes.NewBuffer(data))
 
 		if err != nil {
 			fmt.Printf("Error Making Request: %s\n\n", err.Error())

@@ -16,6 +16,7 @@ var students map[string]int
 // Retrieve list of all students from Database
 // TODO: Implement API Call to Database and construct Student Objects from returned Data
 func retrieveData() {
+	//NetID: Unix Timestamp of when they are eligible to register
 	students = map[string]int{"ps931": 2309483, "mg123": 1712129765}
 }
 
