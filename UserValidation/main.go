@@ -64,10 +64,11 @@ func main() {
 		// Generate token
 		token := loginController.Login(c)
 		if token != "" {
+			encToken := middleware.Encrypt(token)
 			// Set token to cookie & send back home
-			c.SetCookie("token", token, 48*60, "/", "", false, false)
+			c.SetCookie("token", encToken, 48*60, "/", "", false, false)
 			// c.Redirect(http.StatusFound, "/")
-			c.JSON(200, gin.H{"token": token})
+			c.JSON(200, gin.H{"token": encToken})
 			return
 		}
 		// redirect to error page
