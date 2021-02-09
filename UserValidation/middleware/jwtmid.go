@@ -7,12 +7,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
+	"main/protobuf"
 	"main/service"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"google.golang.org/protobuf/proto"
 )
 
 // Decrypt ...
@@ -68,13 +73,30 @@ func Encrypt(stringToEncrypt string) (encryptedString string) {
 	return fmt.Sprintf("%x", ciphertext)
 }
 
+func genBytes(data string) []byte {
+	bytes := []byte{}
+	stringvals := strings.Split(data, " ")
+	for index := 0; index < len(stringvals); index++ {
+		value, _ := strconv.Atoi(stringvals[index])
+		bytes = append(bytes, byte(value))
+	}
+	return bytes
+}
+
 // ValidToken ...
 func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	// Get token from cookie and check if valid
-	encTokenString, err := c.Cookie("token")
+	prototoken := &protobuf.Token{}
+	cookiedata, err := c.Cookie("token")
 	if err != nil {
 		return nil, false
 	}
+	databytes := genBytes(cookiedata)
+	err = proto.Unmarshal(databytes, prototoken)
+	if err != nil {
+		log.Fatal("unmarshaling error: ", err)
+	}
+	encTokenString := prototoken.Token
 	fmt.Println(encTokenString)
 	tokenString := Decrypt(encTokenString)
 	fmt.Println(tokenString)

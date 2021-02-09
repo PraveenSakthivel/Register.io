@@ -1,16 +1,20 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-contrib/multitemplate"
-	"github.com/gin-gonic/gin"
 
 	"main/controller"
 	"main/middleware"
 	"main/models"
+	"main/protobuf"
 	"main/service"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-contrib/multitemplate"
+	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/proto"
 )
 
 // Merge base html page with additional page and set name for each view
@@ -66,9 +70,24 @@ func main() {
 		if token != "" {
 			encToken := middleware.Encrypt(token)
 			// Set token to cookie & send back home
-			c.SetCookie("token", encToken, 48*60, "/", "", false, false)
+
 			// c.Redirect(http.StatusFound, "/")
-			c.JSON(200, gin.H{"token": encToken})
+
+			message := &protobuf.Token{Token: encToken}
+			data, err := proto.Marshal(message)
+			stringarray := fmt.Sprint(data)
+			stringarray = stringarray[1 : len(stringarray)-1]
+			fmt.Println(stringarray)
+			// fmt.Println(data)
+			// fmt.Println(string(data))
+			if err != nil {
+				log.Fatal("marshaling error: ", err)
+			}
+
+			c.SetCookie("token", stringarray, 48*60, "/", "", false, false)
+
+			c.ProtoBuf(http.StatusOK, message)
+			// c.JSON(200, gin.H{"token": encToken})
 			return
 		}
 		// redirect to error page
