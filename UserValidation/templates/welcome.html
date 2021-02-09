@@ -1,0 +1,21 @@
+{{ define "content" }}
+
+<div class="container-fluid">
+    <br>
+    <div class="row">
+        <div class="col text-center">
+            <h1> Welcome to WebReg2.0 </h1>
+            <br>
+            {{ if not .userobj}}
+                <br>
+                <a href="/login"><button class="btn btn-primary">Login</button></a>
+            {{ else }}
+                <h1>Logged in as: {{.userobj}}</h1>
+                <br>
+                <a href="/logout"><button class="btn btn-primary">Logout</button></a>
+            {{ end }}
+        </div>
+    </div>
+</div>
+
+{{end}}
