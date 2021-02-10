@@ -73,11 +73,15 @@ func Encrypt(stringToEncrypt string) (encryptedString string) {
 	return fmt.Sprintf("%x", ciphertext)
 }
 
-func genBytes(data string) []byte {
+// GenBytes ...
+func GenBytes(data string) []byte {
 	bytes := []byte{}
 	stringvals := strings.Split(data, " ")
 	for index := 0; index < len(stringvals); index++ {
-		value, _ := strconv.Atoi(stringvals[index])
+		value, err := strconv.Atoi(stringvals[index])
+		if err != nil {
+			return nil
+		}
 		bytes = append(bytes, byte(value))
 	}
 	return bytes
@@ -91,7 +95,10 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	if err != nil {
 		return nil, false
 	}
-	databytes := genBytes(cookiedata)
+	databytes := GenBytes(cookiedata)
+	if databytes == nil || len(databytes) == 0 {
+		return nil, false
+	}
 	err = proto.Unmarshal(databytes, prototoken)
 	if err != nil {
 		log.Fatal("unmarshaling error: ", err)
