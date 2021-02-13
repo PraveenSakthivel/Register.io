@@ -1,26 +1,22 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-contrib/multitemplate"
-	"github.com/gin-gonic/gin"
-
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"log"
 	"main/controller"
 	"main/middleware"
 	"main/models"
+	"main/protobuf"
 	"main/service"
-)
+	"net/http"
 
-// Merge base html page with additional page and set name for each view
-func tempRender() multitemplate.Renderer {
-	r := multitemplate.NewRenderer()
-	r.AddFromFiles("index", "templates/base.html", "templates/welcome.html")
-	r.AddFromFiles("login", "templates/base.html", "templates/login.html")
-	r.AddFromFiles("notfound", "templates/base.html", "templates/notfound.html")
-	return r
-}
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/proto"
+)
 
 func main() {
 	// JWT login setup
@@ -29,14 +25,13 @@ func main() {
 
 	// Router & template Setup
 	router := gin.Default()
-	router.HTMLRender = tempRender()
+	router.Use(static.Serve("/", static.LocalFile("./views", true)))
 
 	// Intiialize SQLite DB
 	models.ConnectDB()
 
 	// Get index page
 	router.GET("/", func(c *gin.Context) {
-		// Check if user has valid token
 		token, valid := middleware.ValidToken(c)
 		// If valid present login page
 		if valid {
@@ -47,16 +42,49 @@ func main() {
 		c.HTML(200, "index", gin.H{})
 	})
 
-	// Present login form
-	router.GET("/login", func(c *gin.Context) {
-		c.HTML(200, "login", gin.H{})
+	router.GET("/authuser", func(c *gin.Context) {
+		// Check if user has valid token
+		token, valid := middleware.ValidToken(c)
+		// If valid present login page
+		if valid {
+			message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
+			data, _ := proto.Marshal(message)
+			stringarray := fmt.Sprint(data)
+			stringarray = stringarray[1 : len(stringarray)-1]
+			c.ProtoBuf(200, message)
+
+			return
+		}
+		message := &protobuf.Token{Token: ""}
+		c.ProtoBuf(200, message)
 	})
 
-	// Present not found page
-	router.GET("/notfound/", func(c *gin.Context) {
-		// Get type url parameter
-		// If param = "login" -> present invalid credentials, else present username already exists
-		c.HTML(200, "notfound", gin.H{"text": "Invalid credentials"})
+	// Present login form
+	router.GET("/login", func(c *gin.Context) {
+		c.SetCookie("state", "login", 10*365*24*60*60, "/", "", false, false)
+		c.Redirect(http.StatusFound, "/")
+	})
+
+	router.GET("/signup", func(c *gin.Context) {
+		c.SetCookie("state", "signup", 10*365*24*60*60, "/", "", false, false)
+		c.Redirect(http.StatusFound, "/")
+	})
+
+	router.POST("/signup_user", func(c *gin.Context) {
+		email := c.PostForm("email")
+		password := c.PostForm("password")
+		data := []byte(password)
+		hash := md5.Sum(data)
+		newpass := hex.EncodeToString(hash[:])
+		users := []models.User{}
+		models.DB.Where("email = ?", email).Find(&users)
+		if len(users) == 0 {
+			models.DB.Create(&models.User{Email: email, Password: newpass})
+			c.SetCookie("state", "", 10*365*24*60*60, "/", "", false, false)
+		} else {
+			c.SetCookie("state", "notfound", 10*365*24*60*60, "/", "", false, false)
+		}
+		c.Redirect(http.StatusFound, "/")
 	})
 
 	// Process user login
@@ -66,18 +94,26 @@ func main() {
 		if token != "" {
 			encToken := middleware.Encrypt(token)
 			// Set token to cookie & send back home
-			c.SetCookie("token", encToken, 48*60, "/", "", false, false)
-			// c.Redirect(http.StatusFound, "/")
-			c.JSON(200, gin.H{"token": encToken})
-			return
+			message := &protobuf.Token{Token: encToken}
+			data, err := proto.Marshal(message)
+			stringarray := fmt.Sprint(data)
+			stringarray = stringarray[1 : len(stringarray)-1]
+			fmt.Println(stringarray)
+			if err != nil {
+				log.Fatal("marshaling error: ", err)
+			}
+
+			c.SetCookie("token", stringarray, 48*60, "/", "", false, false)
+
+			c.SetCookie("state", "", 10*365*24*60*60, "/", "", false, false)
+		} else {
+			c.SetCookie("state", "invalid", 10*365*24*60*60, "/", "", false, false)
 		}
-		// redirect to error page
-		c.Redirect(http.StatusFound, "/notfound")
+		c.Redirect(http.StatusFound, "/")
 	})
 
 	// Logout user
 	router.GET("/logout", func(c *gin.Context) {
-		// delete token cookie and send home
 		c.SetCookie("token", "", -1, "/", "", false, false)
 		c.Redirect(http.StatusFound, "/")
 	})
