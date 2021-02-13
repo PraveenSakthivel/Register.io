@@ -1,0 +1,93 @@
+.login{
+    background-color: rgb(233, 233, 233);
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image:inherit;
+}
+
+.login h1{
+    padding: 0;
+    margin: 0;
+}
+
+.login-card{
+    width: 40vw;
+    height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,1);
+    transition: 0.3s;
+    padding: 0;
+    border: 0;
+}
+
+.login-card-body{
+    padding: 0;
+    
+    display: flex;
+    flex-direction: column;
+}
+
+.login-header{
+    margin-bottom: 5%;
+    padding: 7.5% 5% 5% 7.5%;
+    background-color: rgb(233, 233, 233);
+    border-radius: 10px 10px 0px 0px;
+    display: flex;
+    flex-direction: row;
+}
+
+.login-header img{
+    max-width: 40%;
+    object-fit: contain;
+}
+
+.login-footer{
+    padding: 5% 7.5%;
+    flex-grow: 1;
+    display:flex;
+    flex-direction: column-reverse;
+}
+
+.login-body{
+    padding: 0% 7.5% 0% 7.5%;
+}
+
+.login-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.login-btn{
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.login-btn:enabled{
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.login-btn:hover{
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+
+.login-btn::selection{
+    box-shadow: var(--color-primary);
+}
+
+.login-forgot-password{
+    text-decoration: underline;
+    margin-top: 5px;
+    color: black;
+}
+
+.login-forgot-password:hover{
+    color: var(--color-primary-dark);
+    cursor: pointer;
+}
