@@ -1,11 +1,16 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	rvInterface "registerio/rv/protobuf"
 	"time"
+
+	_ "github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/proto"
 )
@@ -13,11 +18,57 @@ import (
 //Global list of all students with format netId:EligbilityTimestamp
 var students map[string]int
 
+//DB Info
+const (
+	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
+	port     = 5432
+	user     = "registerio"
+	password = "registera"
+	dbname   = "maindb"
+)
+
 // Retrieve list of all students from Database
-// TODO: Implement API Call to Database and construct Student Objects from returned Data
+// TODO: Retrieve endpoint securely
 func retrieveData() {
-	//NetID: Unix Timestamp of when they are eligible to register
-	students = map[string]int{"ps931": 2309483, "mg123": 1712129765}
+	students = make(map[string]int)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		os.Exit(3)
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		os.Exit(3)
+	}
+
+	rows, err := db.Query("SELECT * FROM \"registration dates\"")
+	if err != nil {
+		log.Println("Database error: ", err)
+		os.Exit(3)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var netid string
+		var time int
+		err = rows.Scan(&netid, &time)
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			os.Exit(3)
+		}
+		students[netid] = time
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		os.Exit(3)
+	}
+
 }
 
 //Send response back to client
