@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// Page ...
 type Page struct {
 	Title string
 	Body  []byte
@@ -32,7 +33,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
 
-func main() {
+func amain() {
 	http.HandleFunc("/view/", viewHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
