@@ -51,9 +51,9 @@ func getSecretKey() string {
 }
 
 // generate token and seed with email information
-func (service *jwtServices) GenerateToken(email string, isUser bool) string {
+func (service *jwtServices) GenerateToken(netid string, isUser bool) string {
 	claims := &authCustomClaims{
-		email,
+		netid,
 		isUser,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),

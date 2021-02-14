@@ -10,7 +10,7 @@ import (
 
 // LoginCredentials ...
 type LoginCredentials struct {
-	Email    string `form:"Email"`
+	NetID    string `form:"NetID"`
 	Password string `form:"Password"`
 }
 
@@ -43,9 +43,9 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 	credential.Password = hex.EncodeToString(hash[:])
 
 	// if user is valid, generate token
-	isUserAuthenticated := service.LoginUser(credential.Email, credential.Password)
+	isUserAuthenticated := service.LoginUser(credential.NetID, credential.Password)
 	if isUserAuthenticated {
-		return controller.jWtService.GenerateToken(credential.Email, true)
+		return controller.jWtService.GenerateToken(credential.NetID, true)
 	}
 	return ""
 }

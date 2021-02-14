@@ -13,11 +13,22 @@ import (
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/proto"
 )
 
+func tempRender() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+	r.AddFromFiles("index", "templates/base.html", "templates/welcome.html")
+	r.AddFromFiles("signup", "templates/base.html", "templates/signup.html")
+	r.AddFromFiles("login", "templates/base.html", "templates/login.html")
+	r.AddFromFiles("notfound", "templates/base.html", "templates/notfound.html")
+	r.AddFromFiles("viewreg", "templates/base.html", "templates/viewreg.html")
+	// r.AddFromFiles("about", "templates/base.html", "templates/about.html")
+	// r.AddFromFilesFuncs("about", template.FuncMap{"mod": func(i, j int) bool { return i%j == 0 }}, "templates/base.html", "templates/about.html")
+	return r
+}
 func main() {
 	// JWT login setup
 	jwtService := service.JWTAuthService()
@@ -25,66 +36,75 @@ func main() {
 
 	// Router & template Setup
 	router := gin.Default()
-	router.Use(static.Serve("/", static.LocalFile("./views", true)))
+	router.HTMLRender = tempRender()
+	// router.Use(static.Serve("/", static.LocalFile("./views", true)))
 
 	// Intiialize SQLite DB
 	models.ConnectDB()
 
 	// Get index page
 	router.GET("/", func(c *gin.Context) {
-		token, valid := middleware.ValidToken(c)
-		// If valid present login page
-		if valid {
-			c.HTML(200, "index", gin.H{"userobj": token.Claims.(jwt.MapClaims)["name"]})
+		// token, valid := middleware.ValidToken(c)
+		message := authuser(c)
+		if message.Token != "" {
+			// If valid present login page
+			// if valid {
+			c.HTML(200, "index", gin.H{"userobj": message.Token})
 			return
 		}
 		// Present standard welcome page
 		c.HTML(200, "index", gin.H{})
 	})
 
-	router.GET("/authuser", func(c *gin.Context) {
-		// Check if user has valid token
-		token, valid := middleware.ValidToken(c)
-		// If valid present login page
-		if valid {
-			message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
-			data, _ := proto.Marshal(message)
-			stringarray := fmt.Sprint(data)
-			stringarray = stringarray[1 : len(stringarray)-1]
-			c.ProtoBuf(200, message)
+	router.GET("/viewreg", func(c *gin.Context) {
+		message := authuser(c)
+		if message.Token != "" {
 
+			regs := []models.CourseRegistration{}
+			models.DB.Where("netid = ?", message.Token).Find(&regs)
+			// fmt.Println(regs)
+			classes := []models.Soc{}
+			for _, reg := range regs {
+				current := []models.Soc{}
+				models.DB.Where("index = ?", reg.ClassIndex).First(&current)
+				classes = append(classes, current...)
+			}
+			// fmt.Println(classes)
+
+			c.HTML(200, "viewreg", gin.H{"classes": classes})
 			return
 		}
-		message := &protobuf.Token{Token: ""}
+		c.Redirect(http.StatusFound, "login")
+
+	})
+
+	router.GET("/authuser", func(c *gin.Context) {
+		message := authuser(c)
 		c.ProtoBuf(200, message)
 	})
 
-	// Present login form
-	router.GET("/login", func(c *gin.Context) {
-		c.SetCookie("state", "login", 10*365*24*60*60, "/", "", false, false)
-		c.Redirect(http.StatusFound, "/")
-	})
-
 	router.GET("/signup", func(c *gin.Context) {
-		c.SetCookie("state", "signup", 10*365*24*60*60, "/", "", false, false)
-		c.Redirect(http.StatusFound, "/")
+		c.HTML(200, "signup", gin.H{})
+	})
+	router.GET("/login", func(c *gin.Context) {
+		c.HTML(200, "login", gin.H{})
 	})
 
 	router.POST("/signup_user", func(c *gin.Context) {
-		email := c.PostForm("email")
+		netid := c.PostForm("netid")
 		password := c.PostForm("password")
+		// fmt.Println(email)
 		data := []byte(password)
 		hash := md5.Sum(data)
 		newpass := hex.EncodeToString(hash[:])
 		users := []models.User{}
-		models.DB.Where("email = ?", email).Find(&users)
+		models.DB.Where("netid = ?", netid).Find(&users)
 		if len(users) == 0 {
-			models.DB.Create(&models.User{Email: email, Password: newpass})
-			c.SetCookie("state", "", 10*365*24*60*60, "/", "", false, false)
-		} else {
-			c.SetCookie("state", "notfound", 10*365*24*60*60, "/", "", false, false)
+			models.DB.Create(&models.User{Netid: netid, Password: newpass})
+			c.Redirect(http.StatusFound, "/")
+			return
 		}
-		c.Redirect(http.StatusFound, "/")
+		c.Redirect(http.StatusFound, "/notfound")
 	})
 
 	// Process user login
@@ -104,12 +124,20 @@ func main() {
 			}
 
 			c.SetCookie("token", stringarray, 48*60, "/", "", false, false)
-
-			c.SetCookie("state", "", 10*365*24*60*60, "/", "", false, false)
-		} else {
-			c.SetCookie("state", "invalid", 10*365*24*60*60, "/", "", false, false)
+			c.Redirect(http.StatusFound, "/")
+			return
 		}
-		c.Redirect(http.StatusFound, "/")
+		c.Redirect(http.StatusFound, "/notfound?type=login")
+	})
+
+	router.GET("/notfound/", func(c *gin.Context) {
+		// Get type url parameter
+		// If param = "login" -> present invalid credentials, else present username already exists
+		if c.Query("type") == "login" {
+			c.HTML(200, "notfound", gin.H{"text": "Invalid credentials"})
+		} else {
+			c.HTML(200, "notfound", gin.H{"text": "User already exists"})
+		}
 	})
 
 	// Logout user
@@ -119,4 +147,22 @@ func main() {
 	})
 
 	router.Run()
+}
+
+func authuser(c *gin.Context) *protobuf.Token {
+	// Check cookie value is set and if cookie corresponds to valid JWT
+	token, valid := middleware.ValidToken(c)
+	// If valid send username from JWT
+	if valid {
+		message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
+		data, _ := proto.Marshal(message)
+		stringarray := fmt.Sprint(data)
+		stringarray = stringarray[1 : len(stringarray)-1]
+		// c.ProtoBuf(200, message)
+		return message
+	}
+	// If not, send empty string
+	message := &protobuf.Token{Token: ""}
+	return message
+	// c.ProtoBuf(200, message)
 }
