@@ -3,8 +3,14 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import Home from './Components/Home/Home'
 import Login from './Components/Login/Login'
+import Navbar from './Components/Navbar/Navbar'
 
 class App extends Component {
+
+  isLoggedIn(props){
+    return <Navbar />;
+  }
+
   render() {
     return (
       <div class="App">
@@ -16,7 +22,7 @@ class App extends Component {
             </Route>
 
             <Route path='/'>
-              <Home />
+              <this.isLoggedIn />
             </Route>
 
           </Switch>
