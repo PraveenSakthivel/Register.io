@@ -1,0 +1,15 @@
+//to compile protoc --go_out=. *.proto
+
+syntax="proto3";
+
+package rvInterface;
+
+message Student {
+    string NetId = 1;
+}
+
+message Response{
+    bool Eligible = 1;
+    string Error = 2;
+}
+
