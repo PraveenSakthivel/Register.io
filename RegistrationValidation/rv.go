@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
-	rvInterface "registerio/rv/validation"
+	rvInterface "registerio/rv/protobuf"
 
 	_ "github.com/lib/pq"
 
@@ -24,6 +24,12 @@ const (
 	password = "registera"
 	dbname   = "maindb"
 )
+
+type Server struct {
+	rvInterface.UnimplementedRegistrationValidationServer
+	students map[string]int
+	debug    bool
+}
 
 func dprint(msg ...interface{}) {
 	if debug {
@@ -77,20 +83,26 @@ func retrieveData() map[string]int {
 	return students
 }
 
+//Pulls Info from DB and creates new Server Struct
+func NewServer() *Server {
+	students := retrieveData()
+	s := &Server{students: students, debug: debug}
+	return s
+}
+
 func main() {
 	debugPrnt := flag.Bool("debug", false, "Debug Print all Requests")
 	flag.Parse()
 	debug = *debugPrnt
-	//students := retrieveData()
 
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal("Failed to listen on port 8080: ", err)
 	}
 
-	s := rvInterface.NewServer()
+	s := NewServer()
 	grpcServer := grpc.NewServer()
-	rvInterface.RegisterRegistrationValidationServer(grpcServer, &s)
+	rvInterface.RegisterRegistrationValidationServer(grpcServer, s)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatal("Failed to listen on port 8080: ", err)
 	}
