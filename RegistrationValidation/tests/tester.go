@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	rvInterface "registerio/rv/protobuf"
+	rvInterface "registerio/rv/validation"
 	"strconv"
 	"strings"
 

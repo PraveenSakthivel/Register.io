@@ -13,3 +13,7 @@ message Response{
     string Error = 2;
 }
 
+service RegistrationValidation {
+    rpc checkRegVal(Student) returns (Response){}
+}
+
