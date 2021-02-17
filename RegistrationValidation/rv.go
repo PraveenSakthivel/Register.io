@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net"
 	"os"
 	rvInterface "registerio/rv/protobuf"
+	"time"
 
 	_ "github.com/lib/pq"
 
@@ -88,6 +90,25 @@ func NewServer() *Server {
 	students := retrieveData()
 	s := &Server{students: students, debug: debug}
 	return s
+}
+
+//Checks whether user is elgibile to register
+func (s *Server) CheckRegVal(ctx context.Context, student *rvInterface.Student) (*rvInterface.Response, error) {
+	resp := rvInterface.Response{
+		Eligible: false,
+	}
+	// Check to see if student is eligible
+	if dateInt, ok := s.students[student.NetId]; ok {
+		date := time.Unix(int64(dateInt), 0)
+		if time.Now().After(date) {
+			resp.Eligible = true
+		}
+	} else {
+		log.Println("WARNING: Unidentifiable NetID ", student.NetId)
+	}
+
+	dprint("OK: Request with NetID: ", student.NetId)
+	return &resp, nil
 }
 
 func main() {

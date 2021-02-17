@@ -10,7 +10,6 @@ message Student {
 
 message Response{
     bool Eligible = 1;
-    string Error = 2;
 }
 
 service RegistrationValidation {
