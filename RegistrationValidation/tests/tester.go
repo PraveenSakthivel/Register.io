@@ -8,9 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-	rvInterface "registerio/rv/validation"
+	rvInterface "registerio/rv/protobuf"
 	"strconv"
 	"strings"
+
+	"google.golang.org/grpc"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -36,6 +38,14 @@ func main() {
 	cases := buildCases()
 	fmt.Printf("Running %d Cases\n-------------------\n", len(cases))
 	casesPassed := 0
+	var conn *grpc.ClientConn
+	conn, err := grpc.Dial(":8080", grpc.WithInsecure())
+	if err != nil {
+		fmt.Printf("ERROR: Could not connect to server ", err)
+	}
+
+	defer conn.Close()
+	server := rvInterface.NewRegistrationValidationClient(conn)
 	for netID, result := range cases {
 		fmt.Println("Trying Case: ", netID)
 		student := &rvInterface.Student{NetId: netID}
