@@ -1,0 +1,25 @@
+syntax="proto3";
+
+package cvInterface;
+
+message RegistrationRequest {
+    string Token = 1;
+    repeated string Indices = 2;
+}
+
+enum ResultClass {
+    OK = 0; //Request processed successfuly
+    PREREQ = 1; //Request failed due to prereqs
+    FULL = 2; //Request failed due to insufficient class size
+    TIME = 3; //Request failed due to timing constraints
+    SPN = 4; //Request failed due to invalid SPN
+    ERROR = 5; //Server side error
+}
+
+message RegistrationResponse {
+    map<string,ResultClass> Results = 1;
+}
+
+service CourseValidation {
+    rpc ChangeRegistration(RegistrationRequest) returns (RegistrationResponse){}
+}
