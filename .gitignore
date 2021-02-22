@@ -15,3 +15,5 @@
 # vendor/
 SampleWebserver/.env
 .DS_Store
+.DS_Store
+UserValidation/.env

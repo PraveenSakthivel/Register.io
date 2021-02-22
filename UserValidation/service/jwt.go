@@ -12,7 +12,7 @@ import (
 
 // JWTService ...
 type JWTService interface {
-	GenerateToken(email string, isUser bool) string
+	GenerateToken(netid string, isUser bool) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
@@ -50,10 +50,10 @@ func getSecretKey() string {
 	return secret
 }
 
-// generate token and seed with email information
-func (service *jwtServices) GenerateToken(email string, isUser bool) string {
+// generate token and seed with netid information
+func (service *jwtServices) GenerateToken(netid string, isUser bool) string {
 	claims := &authCustomClaims{
-		email,
+		netid,
 		isUser,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
