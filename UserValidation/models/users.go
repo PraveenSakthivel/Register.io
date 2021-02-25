@@ -44,6 +44,14 @@ type Soc struct {
 	Books           pq.StringArray `gorm:"type:character varying[]"`
 }
 
+// CourseHistory ...
+type CourseHistory struct {
+	Netid        string
+	Semester     string
+	CourseNumber string
+	Grade        string
+}
+
 // Token ...
 // type Token struct {
 // 	gorm.Model
@@ -74,6 +82,7 @@ func ConnectDB() {
 	database.AutoMigrate(&User{})
 	database.AutoMigrate(&CourseRegistration{})
 	database.AutoMigrate(&Soc{})
+	database.AutoMigrate(&CourseHistory{})
 	// database.Model(&Token{}).AddForeignKey("User", "users(Email)", "CASCADE", "CASCADE")
 	// database.AutoMigrate(&Token{})
 	DB = database
