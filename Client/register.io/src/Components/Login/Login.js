@@ -4,6 +4,23 @@ import logo from '../../Assets/logo_full.png';
 
 class Login extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.login = this.login.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
+    }
+
+    login(){
+        // after successful auth, pass user type back to App.js
+        this.props.validateLogin(1);
+    }
+
+    handleKeyPress = (event) => {
+        if(event.key === 'Enter'){
+          this.login();
+        }
+    }
+
     render() {
         return (
             <div style={{  
@@ -15,7 +32,7 @@ class Login extends React.Component {
               }} class="login">
 
                 <div class ="card login-card">
-                    <div class="card-body login-card-body">
+                    <form class="card-body login-card-body">
 
                         <div class="login-header">
                             <h1 style={{flex:.55}}>Login</h1> 
@@ -29,12 +46,12 @@ class Login extends React.Component {
                             </div>
                             <div style={{paddingBottom: 10}} class="input-group mb-3">
                                 <span style={{width: 100}} class="input-group-text" id="basic-addon3">Password</span>
-                                <input type="password" class="form-control" id="basic-url" aria-describedby="basic-addon3"></input>
+                                <input onKeyPress={this.handleKeyPress} type="password" class="form-control" id="basic-url" aria-describedby="basic-addon3"></input>
                             </div>
                             <div class="login-row">
                                 <a class="login-forgot-password" >Forgot Password?</a>
                                 <p style={{flex:.75}}></p>
-                                <button type="submit" style={{flex:.25}} type="button" class="btn btn-primary login-btn">Login</button>
+                                <button onClick={this.login} type="submit" style={{flex:.25}} type="button" class="btn btn-primary login-btn">Login</button>
                             </div>
                         
                         </div>
@@ -43,7 +60,7 @@ class Login extends React.Component {
                                 <p style={{ textAlign:'center'}}>Powered by Register.io &#128218;</p>
                                 <hr></hr>
                         </div>
-                    </div>
+                    </form>
                 </div>
 
             </div>
