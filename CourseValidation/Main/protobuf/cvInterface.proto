@@ -10,10 +10,11 @@ message RegistrationRequest {
 enum ResultClass {
     OK = 0; //Request processed successfuly
     PREREQ = 1; //Request failed due to prereqs
-    FULL = 2; //Request failed due to insufficient class size
     TIME = 3; //Request failed due to timing constraints
     SPN = 4; //Request failed due to invalid SPN
-    ERROR = 5; //Server side error
+    INVALID = 5; //Request failed due to invalid index
+    ERROR = 6; //Request failed due to Server side error
+    SQS = 7; //Request failed due to error sending message to SQS
 }
 
 message RegistrationResponse {
