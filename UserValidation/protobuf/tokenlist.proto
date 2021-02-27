@@ -1,0 +1,6 @@
+syntax="proto3";
+package tokenlist;
+
+message TokenList {
+    repeated string token = 1;
+}

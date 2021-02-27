@@ -58,10 +58,10 @@ func main() {
 	// NOTE View Registration
 	router.GET("/viewreg", func(c *gin.Context) {
 		message := authuser(c)
-		if message.Token != "" {
+		if message != nil {
 
 			regs := []models.CourseRegistration{}
-			models.DB.Where("netid = ?", message.Token).Find(&regs)
+			models.DB.Where("netid = ?", message.Claims.(jwt.MapClaims)["name"]).Find(&regs)
 			// fmt.Println(regs)
 			classes := []models.Soc{}
 			for _, reg := range regs {
@@ -77,6 +77,33 @@ func main() {
 		c.Redirect(http.StatusFound, "login")
 
 	})
+
+	router.GET("/viewreg_endpoint", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+
+			regs := []models.CourseRegistration{}
+			models.DB.Where("netid = ?", message.Claims.(jwt.MapClaims)["name"]).Find(&regs)
+			// fmt.Println(regs)
+			classes := []models.Soc{}
+			for _, reg := range regs {
+				current := []models.Soc{}
+				models.DB.Where("index = ?", reg.ClassIndex).First(&current)
+				classes = append(classes, current...)
+			}
+			// fmt.Println(classes)
+			protomessage := protobuf.TokenList{}
+			for _, class := range classes {
+				protomessage.Token = append(protomessage.Token, class.Name)
+			}
+			c.ProtoBuf(http.StatusFound, &protomessage)
+			return
+		}
+		protomessage := protobuf.TokenList{}
+		c.ProtoBuf(http.StatusFound, &protomessage)
+
+	})
+
 	// Present login form
 	router.GET("/login", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login", gin.H{})
@@ -172,26 +199,39 @@ func main() {
 		c.Redirect(http.StatusFound, "/")
 	})
 
+	router.GET("/prevCourses", func(c *gin.Context) {
+		message := authuser(c)
+		if message != nil {
+			fmt.Println("MESSAGE MAP CLAIMS")
+			fmt.Println(message.Claims.(jwt.MapClaims))
+			c.JSON(200, gin.H{"prev": message.Claims.(jwt.MapClaims)["classes"]})
+			return
+		}
+		c.JSON(200, gin.H{})
+	})
+
 	router.Run()
 }
 
 // NOTE : authuser endpoint
 // * Pass in context w/ cookie saved
 // * Returns protobuf w/ netID
-func authuser(c *gin.Context) *protobuf.Token {
+func authuser(c *gin.Context) *jwt.Token {
 	// Check cookie value is set and if cookie corresponds to valid JWT
 	token, valid := middleware.ValidToken(c)
 	// If valid send username from JWT
 	if valid {
-		message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
-		data, _ := proto.Marshal(message)
-		stringarray := fmt.Sprint(data)
-		stringarray = stringarray[1 : len(stringarray)-1]
-		// c.ProtoBuf(200, message)
-		return message
+		// message := &protobuf.Token{Token: token.Claims.(jwt.MapClaims)["name"].(string)}
+		// data, _ := proto.Marshal(message)
+		// stringarray := fmt.Sprint(data)
+		// stringarray = stringarray[1 : len(stringarray)-1]
+		// // c.ProtoBuf(200, message)
+		// return message
+		return token
 	}
 	// If not, send empty string
-	message := &protobuf.Token{Token: ""}
-	return message
+	// message := &protobuf.Token{Token: ""}
+	// return message
+	return nil
 	// c.ProtoBuf(200, message)
 }
