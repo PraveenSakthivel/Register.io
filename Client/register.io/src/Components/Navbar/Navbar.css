@@ -1,6 +1,6 @@
 .navbar{
     background-image: linear-gradient(var(--color-primary), var(--color-primary-dark));
-    width: 10%;
+    width: 7.5%;
     min-width: 75px;
     height: 100vh;
     position: fixed;

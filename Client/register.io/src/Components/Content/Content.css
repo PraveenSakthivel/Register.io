@@ -1,8 +1,7 @@
 .content{
-    height: 100vh;
-    width: 90%;
-    padding-right: 5%;
+    width: 92.5%;
+    padding-right: 3.5%;
     padding-left: 5%;
-    margin-left: max(75px, 10%);
+    margin-left: max(75px, 6.5%);
     margin-top: 2.5%;
 }

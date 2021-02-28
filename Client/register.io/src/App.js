@@ -21,6 +21,13 @@ class App extends Component {
   validateLogin(userType){
     this.setState({loggedIn:true});
     this.setState({userType:userType});
+    window.sessionStorage.setItem("loggedIn", true);
+    window.sessionStorage.setItem("userType", userType);
+  }
+
+  componentWillMount(){
+    this.setState({loggedIn:window.sessionStorage.getItem("loggedIn")});
+    this.setState({userType:window.sessionStorage.getItem("userType")});
   }
 
   render() {

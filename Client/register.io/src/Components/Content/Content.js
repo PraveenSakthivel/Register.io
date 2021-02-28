@@ -47,16 +47,17 @@ class Content extends React.Component {
                 page = <h1>Superuser Dashboard</h1>
                 break;
             case("Logout"):
-                page = <h1>Logout</h1>
+                window.sessionStorage.removeItem("loggedIn");
+                window.sessionStorage.removeItem("userType");
+                window.location.reload();
                 break;
         }
 
         return (
             <div class="content">
                 <Navbar switchComponent={this.switchComponent} userType={this.props.userType} />
-                <div>
-                    {page}
-                </div>
+                
+                {page}
             </div>
         );
     }

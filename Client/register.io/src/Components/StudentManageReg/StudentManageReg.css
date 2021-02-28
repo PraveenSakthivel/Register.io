@@ -1,0 +1,61 @@
+.studentManageReg-registrationHeader{
+    display:flex;
+    margin-top: max(100px, 12.5%);
+    margin-bottom: 2.5%;
+}
+
+.studentManageReg-title{
+    background-color: rgb(255,255,255, .95);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding-top: 3.5%;
+    z-index: 10;
+} 
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,0.01);
+}
+
+.courseTable-container{
+    border: 1px solid rgb(236, 236, 236);
+    border-radius: 5px;
+}
+
+.studentManageReg {
+    margin-bottom: 5%;
+}
+
+.studentManageReg a {
+    cursor:pointer;
+}
+
+.studentManageReg-radio{
+    border-color:  rgb(100, 100, 100);
+    color:  rgb(100, 100, 100);
+    font-weight: 500;
+    transition: 0.1s;
+}
+
+.studentManageReg-radio:hover{
+    background-color:  rgb(100, 100, 100);
+    border-color:  rgb(100, 100, 100);
+    color: white;
+}
+
+input[type="radio"]:checked+.studentManageReg-radio{
+    background-color: rgb(100, 100, 100);
+    border-color: rgb(100, 100, 100);
+    color: white;
+}
+
+input[type="radio"]:active+.studentManageReg-radio{
+    background-color:  rgb(100, 100, 100);
+    border-color:  rgb(100, 100, 100);
+    color: white;
+}
+
+input[type="radio"]:focus+.studentManageReg-radio{
+    box-shadow: none;
+    outline: none !important;
+}
