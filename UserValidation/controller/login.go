@@ -9,11 +9,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var gradeMap = map[string]int{
+	"A":  400,
+	"B+": 350,
+	"B":  300,
+	"C+": 250,
+	"C":  200,
+	"D":  100,
+	"F":  0,
+}
+
 // LoginCredentials ...
 type LoginCredentials struct {
 	NetID    string `form:"NetID"`
 	Password string `form:"Password"`
-	Classes  map[string]string
+	Classes  map[string]int
 }
 
 // LoginController ...
@@ -48,10 +58,10 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 	isUserAuthenticated := service.LoginUser(credential.NetID, credential.Password)
 	if isUserAuthenticated {
 		classesList := []models.CourseHistory{}
-		credential.Classes = make(map[string]string)
+		credential.Classes = make(map[string]int)
 		models.DB.Where("netid = ?", credential.NetID).Find(&classesList)
 		for _, item := range classesList {
-			credential.Classes[item.CourseNumber] = item.Grade
+			credential.Classes[item.CourseNumber] = gradeMap[item.Grade]
 		}
 		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes)
 	}
