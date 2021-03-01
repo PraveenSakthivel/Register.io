@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package dbRequests;
+
+service DatabseWrapper {
+    rpc RetrieveClasses(ReceiveClassesParams) returns (ClassesResponse) {}
+}
+
+message ReceiveClassesParams {}
+
+message ClassesResponse {
+    repeated Class classes=1;
+}
+message Class {
+    string location=1;
+    string level=2;
+    int32 school=3;
+    int32 department=4;
+    int32 classNum=5;
+    string index=6;
+    string name=7;
+    string section = 8;
+    string meeting_location=9;
+    string meeting_times=10;
+    string exam=11;
+    repeated string instructors=12;
+    repeated string codes=13;
+    string synopsis=14;
+    repeated string books=15;
+    bool available=16;
+}
