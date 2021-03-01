@@ -18,6 +18,6 @@ FROM alpine
 WORKDIR /usr/bin
 COPY --from=build /src/registerio/cv/preqreq/prereqServer /go/bin/prereqServer
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["/go/bin/prereqServer"]

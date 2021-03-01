@@ -97,15 +97,15 @@ func main() {
 	flag.Parse()
 	debug = *debugPrnt
 
-	lis, err := net.Listen("tcp", ":8080")
+	lis, err := net.Listen("tcp", ":8081")
 	if err != nil {
-		log.Fatal("Failed to listen on port 8080: ", err)
+		log.Fatal("Failed to listen on port 8081: ", err)
 	}
 
 	s := NewServer()
 	grpcServer := grpc.NewServer()
 	prereqInterface.RegisterPrereqValidationServer(grpcServer, s)
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatal("Failed to listen on port 8080: ", err)
+		log.Fatal("Failed to listen on port 8081: ", err)
 	}
 }
