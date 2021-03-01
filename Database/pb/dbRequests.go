@@ -2,7 +2,7 @@ package dbRequests
 
 import (
 	"golang.org/x/net/context"
-	"main/models"
+	"registerio/db/models"
 	"database/sql"
 	"log"
 )

@@ -1,4 +1,4 @@
-module main
+module registerio/db
 
 go 1.15
 
