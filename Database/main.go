@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"net"
-	dbRequests "main/pb"
+	dbRequests "registerio/db/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	_ "github.com/lib/pq"
