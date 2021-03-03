@@ -1,0 +1,36 @@
+syntax="proto3";
+
+package cvInterface;
+
+enum ResultClass {
+    OK = 0; //Request processed successfuly
+    PREREQ = 1; //Request failed due to prereqs
+    TIME = 3; //Request failed due to timing constraints
+    SPN = 4; //Request failed due to invalid SPN
+    INVALID = 5; //Request failed due to invalid index
+    ERROR = 6; //Request failed due to Server side error
+    SQS = 7; //Request failed due to error sending message to SQS
+}
+
+enum ReqOp {
+    ADD = 0;
+    DROP = 1;
+}
+
+message ClassOperations{
+    string Index = 1;
+    ReqOp Op = 2;
+}
+
+message RegistrationRequest {
+    string Token = 1;
+    repeated ClassOperations Classes = 2;
+}
+
+message RegistrationResponse {
+    map<string,ResultClass> Results = 1;
+}
+
+service CourseValidation {
+    rpc ChangeRegistration(RegistrationRequest) returns (RegistrationResponse){}
+}

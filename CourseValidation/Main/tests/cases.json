@@ -1,0 +1,20 @@
+[
+    {
+        "Case": "Single Signup",
+        "Token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTQ1NjA1MDUsImV4cCI6MTY0NjA5NjUwNSwibmFtZSI6InBzOTMxIiwiY2xhc3NIaXN0b3J5Ijp7IjE5MjoxMDEiOjQwMCwiMTkyOjEwMiI6NDAwfX0.OiyDhMIu0xlgj2036vGH4JCDkELRWktvian3pdeOFSU",
+        "Classes": [
+            {
+                "Index": "02345",
+                "Operation": "add"
+            },
+            {
+                "Index": "023456",
+                "Operation": "add"
+            }
+        ],
+        "Results": {
+            "02345": "OK",
+            "023456": "INVALID"
+        }
+    }
+]
