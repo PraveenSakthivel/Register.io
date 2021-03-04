@@ -12,15 +12,16 @@ import (
 
 // JWTService ...
 type JWTService interface {
-	GenerateToken(netid string, isUser bool, classes map[string]int) string
+	GenerateToken(netid string, isUser bool, classes map[string]int, cases []int) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
 // Custom fields we can expand on
 type authCustomClaims struct {
-	Name    string         `json:"name"`
-	User    bool           `json:"user"`
-	Classes map[string]int `json:"classes"`
+	Name         string         `json:"name"`
+	User         bool           `json:"user"`
+	Classes      map[string]int `json:"classes"`
+	SpecialCases []int          `json:"special"`
 	jwt.StandardClaims
 }
 
@@ -52,11 +53,12 @@ func getSecretKey() string {
 }
 
 // generate token and seed with netid information
-func (service *jwtServices) GenerateToken(netid string, isUser bool, classes map[string]int) string {
+func (service *jwtServices) GenerateToken(netid string, isUser bool, classes map[string]int, cases []int) string {
 	claims := &authCustomClaims{
 		netid,
 		isUser,
 		classes,
+		cases,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
 			Issuer:    service.issure,

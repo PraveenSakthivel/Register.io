@@ -19,6 +19,14 @@ type User struct {
 	Type     int
 }
 
+// Students ...
+type Students struct {
+	Netid        string
+	Class        int
+	Credits      int
+	SpecialCases pq.Int64Array `gorm:"type:integer[]"`
+}
+
 // CourseRegistration ...
 type CourseRegistration struct {
 	Netid      string
@@ -83,6 +91,7 @@ func ConnectDB() {
 	database.AutoMigrate(&CourseRegistration{})
 	database.AutoMigrate(&Soc{})
 	database.AutoMigrate(&CourseHistory{})
+	database.AutoMigrate(&Students{})
 	// database.Model(&Token{}).AddForeignKey("User", "users(Email)", "CASCADE", "CASCADE")
 	// database.AutoMigrate(&Token{})
 	DB = database

@@ -63,7 +63,12 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 		for _, item := range classesList {
 			credential.Classes[item.CourseNumber] = gradeMap[item.Grade]
 		}
-		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes)
+		students := models.Students{}
+		models.DB.Where("netid = ?", credential.NetID).First(&students)
+		cases := students.SpecialCases
+		casesArray := []int{}
+		cases.Scan(casesArray)
+		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes, casesArray)
 	}
 	return ""
 }
