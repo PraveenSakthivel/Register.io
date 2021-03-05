@@ -76,8 +76,8 @@ func retrieveMessages() ([]*sqs.Message, error) {
 	return (*msgResult).Messages, nil
 }
 
-func addStudent(netID string) bool {
-	if state.CurrentSize == state.MaxSize {
+func addStudent(netID string, spn bool) bool {
+	if state.CurrentSize == state.MaxSize && !spn {
 		dprint("ADD|Class full cannot add: ", netID)
 		return false
 	}
@@ -117,9 +117,11 @@ func proccessMessage(message *sqs.Message) error {
 	var toUpdate bool
 	switch action {
 	case "add":
-		toUpdate = addStudent(netID)
+		toUpdate = addStudent(netID, false)
 	case "drop":
 		toUpdate = dropStudent(netID)
+	case "spn":
+		toUpdate = addStudent(netID, true)
 	default:
 		log.Println("Error Unknown Action: ", action)
 		toUpdate = false
