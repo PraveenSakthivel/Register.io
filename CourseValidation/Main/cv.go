@@ -11,7 +11,6 @@ import (
 	data "registerio/cv/main/database"
 	prereqInterface "registerio/cv/main/prereq"
 	cvInterface "registerio/cv/main/protobuf"
-	regInquiry "registerio/cv/main/registrationinquiry"
 
 	"strconv"
 	"time"
@@ -75,7 +74,7 @@ func NewServer() (*Server, error) {
 	}
 	timings, err := data.GetClassTimes()
 	if err != nil {
-		log.Fatal("ERROR: Cannot retrieve SPNs")
+		log.Fatal("ERROR: Cannot get class times")
 	}
 	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings}
 	return s, err
@@ -148,7 +147,7 @@ func (s *Server) sendRegRequest(netID string, class *cvInterface.ClassOperations
 }
 
 func (s *Server) getCurrentSchedule(netID string) (map[time.Weekday]*classTiming.ClassSlot, error) {
-	currentRegistration, err := regInquiry.GetRegistration(netID)
+	currentRegistration, err := data.GetCurrentRegistration(netID)
 	if err != nil {
 		return nil, err
 	}

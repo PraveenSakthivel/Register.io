@@ -41,7 +41,7 @@ func RetrieveState(index string) (Consumer, error) {
 		return retval, err
 	}
 
-	sql := `SELECT index, "registered students", "max size", "current size" FROM "course availability" WHERE index=$1;`
+	sql := `SELECT index, "max size" FROM "course availability" WHERE index=$1;`
 
 	rows, err := db.Query(sql, index)
 	if err != nil {
@@ -51,7 +51,7 @@ func RetrieveState(index string) (Consumer, error) {
 	defer rows.Close()
 
 	rows.Next()
-	err = rows.Scan(&retval.Index, pq.Array(&retval.RegisteredStudents), &retval.MaxSize, &retval.CurrentSize)
+	err = rows.Scan(&retval.Index, &retval.MaxSize)
 	if err != nil {
 		log.Println("Error Parsing records: ", err)
 		return retval, err
@@ -63,11 +63,36 @@ func RetrieveState(index string) (Consumer, error) {
 		return retval, err
 	}
 
+	sql = `SELECT ARRAY_AGG(netid), "class index"
+	FROM "course registration" WHERE "class index" = $1 GROUP BY 2;`
+
+	rows, err = db.Query(sql, index)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return retval, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(pq.Array(&retval.RegisteredStudents), &retval.Index)
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		return retval, err
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		return retval, err
+	}
+
+	retval.CurrentSize = len(retval.RegisteredStudents)
+
 	return retval, nil
 
 }
 
-func UpdateState(state Consumer) error {
+func AddRegistration(netID string, index string) error {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -83,9 +108,35 @@ func UpdateState(state Consumer) error {
 		return err
 	}
 
-	sqlStatement := `UPDATE "course availability" SET "registered students" = $1, "current size" = $2 WHERE index = $3;`
+	sqlStatement := `INSERT INTO "course registration" VALUES($1,$2);`
 
-	_, err = db.Exec(sqlStatement, pq.Array(state.RegisteredStudents), state.CurrentSize, state.Index)
+	_, err = db.Exec(sqlStatement, netID, index)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+	return nil
+}
+
+func RemoveRegistration(netID string, index string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+
+	sqlStatement := `DELETE FROM "course registration" WHERE "netid" = $1 AND "class index" = $2;`
+
+	_, err = db.Exec(sqlStatement, netID, index)
 	if err != nil {
 		log.Println("Database error: ", err)
 		return err

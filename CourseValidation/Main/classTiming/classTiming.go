@@ -173,8 +173,8 @@ func printMap(course_times map[time.Weekday]*ClassSlot) {
 	}
 
 }
-
-func BuildSchedule(indices []string, lookupPtr *map[string][]ClassSlot) (map[time.Weekday]*ClassSlot, error){
+  
+func BuildSchedule(indices []string, lookupPtr *map[string][]ClassSlot) (map[time.Weekday]*ClassSlot, error)  {
 	lookup := *lookupPtr
 	courseTimes := make(map[time.Weekday]*ClassSlot)
 	for _, index := range indices {

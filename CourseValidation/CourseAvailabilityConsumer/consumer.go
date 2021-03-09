@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	data "registerio/cv/consumer/database"
@@ -49,12 +50,13 @@ func setup() error {
 	}
 
 	queueURL = urlResult.QueueUrl
-	timeout = 5
-	waitTime = 20
+	timeout = 1
+	waitTime = 10
 	return nil
 }
 
 func retrieveMessages() ([]*sqs.Message, error) {
+	dprint("start")
 	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 		AttributeNames: []*string{
 			aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
@@ -67,6 +69,7 @@ func retrieveMessages() ([]*sqs.Message, error) {
 		VisibilityTimeout:   &timeout,
 		WaitTimeSeconds:     &waitTime,
 	})
+	dprint("here")
 
 	if err != nil {
 		log.Println("Error Pulling Messages from SQS: ", err)
@@ -76,66 +79,72 @@ func retrieveMessages() ([]*sqs.Message, error) {
 	return (*msgResult).Messages, nil
 }
 
-func addStudent(netID string, spn bool) bool {
+func addStudent(netID string, spn bool) error {
 	if state.CurrentSize == state.MaxSize && !spn {
 		dprint("ADD|Class full cannot add: ", netID)
-		return false
+		return nil
 	}
 
 	for _, student := range state.RegisteredStudents {
 		if student == netID {
 			dprint("ADD|Student already in class: ", netID)
-			return false
+			return nil
 		}
+	}
+	err := data.AddRegistration(netID, state.Index)
+	if err != nil {
+		log.Println("ERROR: Cannot add student: ", netID)
+		return errors.New("Cannot add student")
 	}
 
 	state.RegisteredStudents = append(state.RegisteredStudents, netID)
 	state.CurrentSize++
 	dprint("ADD|Added Student: ", netID)
-	return true
+	return nil
 }
 
-func dropStudent(netID string) bool {
+func dropStudent(netID string) error {
 	for i, student := range state.RegisteredStudents {
 		if student == netID {
+			err := data.RemoveRegistration(netID, state.Index)
+			if err != nil {
+				log.Println("ERROR: Cannot remove student: ", netID)
+				return errors.New("Cannot remove student")
+			}
 			students := &state.RegisteredStudents
 			//Rewrite student with last element and shorten slice
 			(*students)[i] = (*students)[len(*students)-1]
 			state.RegisteredStudents = (*students)[:len(*students)-1]
 			state.CurrentSize--
 			dprint("DROP|Dropped Student: ", netID)
-			return true
+			return nil
 		}
 	}
 	dprint("DROP|Student not in class: ", netID)
-	return false
+	return nil
 }
 
 func proccessMessage(message *sqs.Message) error {
+	dprint("Received Message: ", *message.Body)
 	fields := strings.Split(*message.Body, "|")
 	netID, action := fields[0], fields[1]
-	var toUpdate bool
+	var err error
 	switch action {
 	case "add":
-		toUpdate = addStudent(netID, false)
+		err = addStudent(netID, false)
 	case "drop":
-		toUpdate = dropStudent(netID)
+		err = dropStudent(netID)
 	case "spn":
-		toUpdate = addStudent(netID, true)
+		err = addStudent(netID, true)
 	default:
 		log.Println("Error Unknown Action: ", action)
-		toUpdate = false
 	}
 
-	if toUpdate {
-		err := data.UpdateState(state)
-		if err != nil {
-			log.Println("Error Updating Database: ", err)
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
-	_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
+	_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
 		QueueUrl:      queueURL,
 		ReceiptHandle: message.ReceiptHandle,
 	})
@@ -155,12 +164,14 @@ func main() {
 		return
 	}
 
+	dprint(*queueURL)
+
 	for true {
 		messages, err := retrieveMessages()
 		if err != nil {
+			log.Println("Error retrieving messages: ", err)
 			continue
 		}
-
 		for _, message := range messages {
 			for proccessMessage(message) != nil {
 			}

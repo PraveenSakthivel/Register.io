@@ -6,6 +6,7 @@ import (
 	"log"
 	classTiming "registerio/cv/main/classtiming"
 
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
@@ -129,7 +130,7 @@ func GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query("SELECT index, url FROM \"sqs queues\"")
+	rows, err := db.Query("SELECT location, index,\"meeting times\" FROM soc;")
 	if err != nil {
 		log.Println("Database error: ", err)
 		return nil, err
@@ -145,7 +146,7 @@ func GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
 			log.Println("Error Parsing records: ", err)
 			return nil, err
 		}
-		slots, err := classTiming.BuildClassSlots(location, times)
+		slots, err := classTiming.BuildClassSlots(times, location)
 		if err != nil {
 			log.Println("Error Building Class Slots: ", err)
 			return nil, err
@@ -159,4 +160,50 @@ func GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
 	}
 
 	return retval, nil
+}
+
+func GetCurrentRegistration(netID string) ([]string, error) {
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+
+	query := `SELECT netid, ARRAY_AGG("class index")
+	FROM "course registration" WHERE netid = $1 GROUP BY netid;`
+
+	rows, err := db.Query(query, netID)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user string
+		var indices []string
+		err = rows.Scan(&user, pq.Array(&indices))
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			return nil, err
+		}
+		return indices, nil
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		return nil, err
+	}
+
+	return []string{}, nil
 }
