@@ -13,8 +13,8 @@ import (
 
 const prereqEndpoint = ":8081"
 
-func CheckPrereqs(classHistory map[string]int32, indices []string) (*PrereqResponse, error) {
-	prereq := PrereqRequest{ClassHistory: classHistory, Indices: indices}
+func CheckPrereqs(classHistory map[string]int32, indices []string, cases map[int32]bool) (*PrereqResponse, error) {
+	prereq := PrereqRequest{ClassHistory: classHistory, Indices: indices, Cases: cases}
 	var preResult *PrereqResponse
 	var conn *grpc.ClientConn
 	var err = errors.New("TMP")

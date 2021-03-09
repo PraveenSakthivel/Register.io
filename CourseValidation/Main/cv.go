@@ -37,6 +37,7 @@ type Server struct {
 type Student struct {
 	netID        string
 	classHistory map[string]int32
+	cases        map[int32]bool
 }
 
 type classResult struct {
@@ -47,6 +48,7 @@ type classResult struct {
 type userClaims struct {
 	NetID        string           `json:"name"`
 	ClassHistory map[string]int32 `json:"classHistory"`
+	SpecialCases map[string]bool  `json:"specialCases"`
 	jwt.StandardClaims
 }
 
@@ -98,7 +100,16 @@ func parseJWT(encodedToken string) (Student, error) {
 	}
 
 	if claims, ok := token.Claims.(*userClaims); ok {
-		return Student{netID: claims.NetID, classHistory: claims.ClassHistory}, nil
+		specCases := make(map[int32]bool)
+		for key, val := range claims.SpecialCases {
+			intkey, err := strconv.ParseInt(key, 10, 32)
+			if err != nil {
+				log.Println("Error Parsing Cases: ", err)
+				continue
+			}
+			specCases[int32(intkey)] = val
+		}
+		return Student{netID: claims.NetID, classHistory: claims.ClassHistory, cases: specCases}, nil
 	}
 	return Student{}, errors.New("Unable to Parse JWT")
 }
@@ -218,7 +229,6 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 	student, err := parseJWT(req.Token)
 	dprint("Received Request for User: ", student)
 	if err != nil {
-		log.Panic("ERROR Parsing JWT")
 		return &response, err
 	}
 
@@ -227,7 +237,7 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 		return &response, err
 	}
 
-	preResult, err := prereqInterface.CheckPrereqs(student.classHistory, indices)
+	preResult, err := prereqInterface.CheckPrereqs(student.classHistory, indices, student.cases)
 	if err != nil {
 		log.Panic("ERROR Timed out trying to connect to prereq endpoint")
 		return &response, err

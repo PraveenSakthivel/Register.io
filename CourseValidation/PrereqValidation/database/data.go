@@ -130,3 +130,47 @@ func GetLookups() (map[string]string, error) {
 
 	return retval, nil
 }
+
+func GetSpecialCases() (map[string][]int32, error) {
+	retval := make(map[string][]int32)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+
+	rows, err := db.Query("SELECT class, cases FROM \"class special cases\"")
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var course string
+		var cases pq.Int32Array
+		err = rows.Scan(&course, &cases)
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			return nil, err
+		}
+		retval[course] = cases
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		return nil, err
+	}
+
+	return retval, nil
+}
