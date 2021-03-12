@@ -84,7 +84,7 @@ func CheckTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) 
 	}
 	var ptr = front
 	var prev *ClassSlot
-	for ptr.next != nil {
+	for ptr != nil {
 		if !startTime.Before(ptr.startTime) {
 			break
 		}
@@ -92,21 +92,28 @@ func CheckTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) 
 		ptr = ptr.next
 	}
 
-	if ptr.next == nil && !startTime.Before(ptr.startTime) {
-		return false, nil
+	var minsApart = 20
+
+	if ptr == nil { // case where it has to fit at the end of the list
+		if int(startTime.Sub(prev.endTime).Minutes()) < minsApart { // if the end of the last class is less than minsApart from the class we wish to add
+			return false, nil
+		}
+		return true, nil
 	}
 
 	// checking the end to make sure it follows rules
 	log.Println("(just to avoid errorrs) Checking location: " + location)
 	// include something that subtracts time based on location, need to read rules for that, for now, just setting default to 20 mins
-
-	var minsApart = 20
-	if prev == nil {
-		prev = ptr
+	
+	if prev == nil { // if front
+		if int(ptr.startTime.Sub(endTime).Minutes()) < minsApart {
+			return false, nil
+		}
+		return true, nil
 	}
-	var differenceInTime = prev.startTime.Sub(endTime).Minutes()
 
-	if int(differenceInTime) < minsApart {
+	// not going at front or end, this is the normal case
+	if int(startTime.Sub(prev.endTime).Minutes()) < minsApart || int(ptr.startTime.Sub(endTime).Minutes()) < minsApart {
 		return false, nil
 	}
 
