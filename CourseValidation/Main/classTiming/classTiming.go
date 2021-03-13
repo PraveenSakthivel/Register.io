@@ -33,9 +33,9 @@ func CreateClassSlot(startTime string, endTime string, location string, day time
 
 }
 
-func BuildClassSlots(times string, location string) ([]ClassSlot, error) {
+func BuildClassSlots(times string, location string) ([]*ClassSlot, error) {
 	var timesArr = strings.Split(times, "|")
-	var slotsArr []ClassSlot
+	var slotsArr []*ClassSlot
 	for _, timestr := range timesArr {
 		// Strings should be formatted as DHH:MM-HH:MM
 		// D = weekday character, H = hour, M = minute
@@ -68,7 +68,7 @@ func BuildClassSlots(times string, location string) ([]ClassSlot, error) {
 		if err != nil {
 			return nil, err
 		}
-		slotsArr = append(slotsArr, classSlot)
+		slotsArr = append(slotsArr, &classSlot)
 	}
 	return slotsArr, nil
 }
@@ -85,14 +85,19 @@ func CheckTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) 
 	var ptr = front
 	var prev *ClassSlot
 	for ptr != nil {
-		if !startTime.Before(ptr.startTime) {
+		if startTime.Before(ptr.startTime) && endTime.Before(ptr.startTime) {
 			break
 		}
 		prev = ptr
 		ptr = ptr.next
 	}
-
 	var minsApart = 20
+	if prev == nil { // if front
+		if int(ptr.startTime.Sub(endTime).Minutes()) < minsApart {
+			return false, nil
+		}
+		return true, nil
+	}
 
 	if ptr == nil { // case where it has to fit at the end of the list
 		if int(startTime.Sub(prev.endTime).Minutes()) < minsApart { // if the end of the last class is less than minsApart from the class we wish to add
@@ -105,13 +110,6 @@ func CheckTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) 
 	log.Println("(just to avoid errorrs) Checking location: " + location)
 	// include something that subtracts time based on location, need to read rules for that, for now, just setting default to 20 mins
 	
-	if prev == nil { // if front
-		if int(ptr.startTime.Sub(endTime).Minutes()) < minsApart {
-			return false, nil
-		}
-		return true, nil
-	}
-
 	// not going at front or end, this is the normal case
 	if int(startTime.Sub(prev.endTime).Minutes()) < minsApart || int(ptr.startTime.Sub(endTime).Minutes()) < minsApart {
 		return false, nil
@@ -120,18 +118,19 @@ func CheckTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) 
 	return true, nil
 }
 
-func InsertTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) (map[time.Weekday]*ClassSlot, error) {
+func InsertTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot) (bool,error) {
 	// Assumes that it is already able to fit, does not check for that
 	var wd = classToAdd.day
 	var ptr = course_times[wd]
 	var startTime = classToAdd.startTime
+	var endTime = classToAdd.endTime
 	var prev *ClassSlot
 	if ptr == nil {
 		course_times[wd] = classToAdd
-		return course_times, nil
+		return true, nil
 	}
-	for ptr.next != nil {
-		if !startTime.Before(ptr.next.startTime) {
+	for ptr != nil {
+		if startTime.Before(ptr.startTime) && endTime.Before(ptr.startTime) {
 			break
 		}
 		prev = ptr
@@ -139,34 +138,35 @@ func InsertTime(course_times map[time.Weekday]*ClassSlot, classToAdd *ClassSlot)
 	}
 
 	if prev == nil {
-		classToAdd.next = ptr
+		classToAdd.next= ptr
 		course_times[wd] = classToAdd
-		return course_times, nil
+		return true, nil
 	}
-
-	prev.next = classToAdd
 	classToAdd.next = ptr
-	return course_times, nil
+	prev.next = classToAdd
+	return true, nil
 }
 
-func CheckTimesAndInsert(slotsArr []ClassSlot, course_times map[time.Weekday]*ClassSlot) (map[time.Weekday]*ClassSlot, error) {
+func CheckTimesAndInsert(slotsArr []*ClassSlot, course_times map[time.Weekday]*ClassSlot) (bool, error) {
 	for _, slot := range slotsArr {
-		ans, err := CheckTime(course_times, &slot)
+		ans, err := CheckTime(course_times, slot)
 		if err != nil {
-			return nil, err
+			return false, err
 		}
 		if ans == false {
-			return nil, nil
+			return false, nil
 		}
-		temp, err := InsertTime(course_times, &slot)
-		if err != nil {
-			return nil, nil
+	}
+
+	for _, slot := range slotsArr {
+		success, err := InsertTime(course_times, slot)
+		if err != nil || success == false{
+			return false, errors.New("Unable to insert the class to map, try again.")
 		}
-		course_times = temp
 	}
 	// insert if all are good
 
-	return course_times, nil
+	return true, nil
 }
 
 func printMap(course_times map[time.Weekday]*ClassSlot) {
@@ -181,7 +181,7 @@ func printMap(course_times map[time.Weekday]*ClassSlot) {
 
 }
   
-func BuildSchedule(indices []string, lookupPtr *map[string][]ClassSlot) (map[time.Weekday]*ClassSlot, error)  {
+func BuildSchedule(indices []string, lookupPtr *map[string][]*ClassSlot) (map[time.Weekday]*ClassSlot, error)  {
 	lookup := *lookupPtr
 	courseTimes := make(map[time.Weekday]*ClassSlot)
 	for _, index := range indices {
@@ -190,8 +190,8 @@ func BuildSchedule(indices []string, lookupPtr *map[string][]ClassSlot) (map[tim
 			return nil, errors.New("Cannot build student schedule")
 		}
 		class := lookup[index]
-		courseTimes, err := CheckTimesAndInsert(class, courseTimes)
-		if err != nil && courseTimes != nil {
+		success, err := CheckTimesAndInsert(class, courseTimes)
+		if err != nil && success != false {
 			log.Println("ERROR: Cannot build student schedule|Build: ", err)
 			return nil, err
 		}
