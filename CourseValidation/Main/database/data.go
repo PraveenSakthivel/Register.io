@@ -2,20 +2,14 @@ package data
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	classTiming "registerio/cv/main/classtiming"
+	secret "registerio/cv/main/secrets"
 
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
-)
-
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
 )
 
 type SPN struct {
@@ -23,12 +17,20 @@ type SPN struct {
 	Index string
 }
 
-func GetQueues() (map[string]string, error) {
+type DB struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
+
+func (s *DB) GetQueues() (map[string]string, error) {
 	retval := make(map[string]string)
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -67,12 +69,12 @@ func GetQueues() (map[string]string, error) {
 	return retval, nil
 }
 
-func GetSPNs() (map[string]SPN, error) {
+func (s *DB) GetSPNs() (map[string]SPN, error) {
 	retval := make(map[string]SPN)
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -113,11 +115,11 @@ func GetSPNs() (map[string]SPN, error) {
 	return retval, nil
 }
 
-func GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
+func (s *DB) GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
 	retval := make(map[string][]classTiming.ClassSlot)
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -162,11 +164,11 @@ func GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
 	return retval, nil
 }
 
-func GetCurrentRegistration(netID string) ([]string, error) {
+func (s *DB) GetCurrentRegistration(netID string) ([]string, error) {
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -206,4 +208,17 @@ func GetCurrentRegistration(netID string) ([]string, error) {
 	}
 
 	return []string{}, nil
+}
+
+func BuildDB() (*DB, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DB{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
 }
