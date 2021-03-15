@@ -19,6 +19,7 @@ var svc *sqs.SQS
 var timeout int64
 var waitTime int64
 var debug bool
+var db *data.DB
 
 func dprint(msg ...interface{}) {
 	if debug {
@@ -26,33 +27,36 @@ func dprint(msg ...interface{}) {
 	}
 }
 
-func setup() error {
+func setup() {
 	var err error
-	state, err = data.RetrieveState(index)
+	db, err = data.BuildDB()
 	if err != nil {
-		return err
+		log.Fatal("ERROR Unable to build DB: ", err)
+	}
+
+	state, err = db.RetrieveState(index)
+	if err != nil {
+		log.Fatal("ERROR Unable to retrieve state: ", err)
 	}
 
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 	if err != nil {
-		log.Println("Error Generating AWS Session: ", err)
-		return err
+		log.Fatal("Error Generating AWS Session: ", err)
 	}
 	svc = sqs.New(sess)
 	urlResult, err := svc.GetQueueUrl(&sqs.GetQueueUrlInput{
 		QueueName: aws.String(index + ".fifo"),
 	})
 	if err != nil {
-		log.Println("Error Getting queue url: ", err)
-		return err
+		log.Fatal("Error Getting queue url: ", err)
 	}
 
 	queueURL = urlResult.QueueUrl
 	timeout = 1
 	waitTime = 10
-	return nil
+	return
 }
 
 func retrieveMessages() ([]*sqs.Message, error) {
@@ -91,7 +95,7 @@ func addStudent(netID string, spn bool) error {
 			return nil
 		}
 	}
-	err := data.AddRegistration(netID, state.Index)
+	err := db.AddRegistration(netID, state.Index)
 	if err != nil {
 		log.Println("ERROR: Cannot add student: ", netID)
 		return errors.New("Cannot add student")
@@ -106,7 +110,7 @@ func addStudent(netID string, spn bool) error {
 func dropStudent(netID string) error {
 	for i, student := range state.RegisteredStudents {
 		if student == netID {
-			err := data.RemoveRegistration(netID, state.Index)
+			err := db.RemoveRegistration(netID, state.Index)
 			if err != nil {
 				log.Println("ERROR: Cannot remove student: ", netID)
 				return errors.New("Cannot remove student")
@@ -159,10 +163,7 @@ func main() {
 	debugPrnt := flag.Bool("debug", false, "Debug Print all Requests")
 	flag.Parse()
 	debug = *debugPrnt
-	err := setup()
-	if err != nil {
-		return
-	}
+	setup()
 
 	dprint(*queueURL)
 

@@ -11,6 +11,7 @@ import (
 	data "registerio/cv/main/database"
 	prereqInterface "registerio/cv/main/prereq"
 	cvInterface "registerio/cv/main/protobuf"
+	secret "registerio/cv/main/secrets"
 
 	"strconv"
 	"time"
@@ -31,6 +32,8 @@ type Server struct {
 	queueLookup map[string]string
 	spns        map[string]data.SPN
 	timings     map[string][]classTiming.ClassSlot
+	tokenSecret string
+	db          *data.DB
 }
 
 //Student representation for handling request
@@ -60,38 +63,44 @@ func dprint(msg ...interface{}) {
 }
 
 //Initialize any Server Variables
-func NewServer() (*Server, error) {
+func NewServer() *Server {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 	svc := sqs.New(sess)
-	queues, err := data.GetQueues()
+
+	db, err := data.BuildDB()
+	if err != nil {
+		log.Fatal("ERROR: Cannot retrieve Database secret")
+	}
+	queues, err := db.GetQueues()
 	if err != nil {
 		log.Fatal("ERROR: Cannot retrieve queue lookup table")
-		return &Server{}, err
 	}
-	spns, err := data.GetSPNs()
+	spns, err := db.GetSPNs()
 	if err != nil {
 		log.Fatal("ERROR: Cannot retrieve SPNs")
 	}
-	timings, err := data.GetClassTimes()
+	timings, err := db.GetClassTimes()
 	if err != nil {
 		log.Fatal("ERROR: Cannot get class times")
 	}
-	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings}
-	return s, err
+	tokenSecret, err := secret.GetTokenSecret("user/JWTEncryption")
+	if err != nil {
+		log.Fatal("ERROR: Cannot get token secret: ", err)
+	}
+	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings, tokenSecret: tokenSecret, db: db}
+	return s
 }
 
 //Add secret decoding and check for validity
-func parseJWT(encodedToken string) (Student, error) {
-
-	secret := "55a441b7b7fea3448945d090e0e67b79"
+func (s *Server) parseJWT(encodedToken string) (Student, error) {
 
 	token, err := jwt.ParseWithClaims(encodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("Invalid token %s", token.Header["alg"])
 		}
-		return []byte(secret), nil
+		return []byte(s.tokenSecret), nil
 	})
 
 	if err != nil {
@@ -158,7 +167,7 @@ func (s *Server) sendRegRequest(netID string, class *cvInterface.ClassOperations
 }
 
 func (s *Server) getCurrentSchedule(netID string) (map[time.Weekday]*classTiming.ClassSlot, error) {
-	currentRegistration, err := data.GetCurrentRegistration(netID)
+	currentRegistration, err := s.db.GetCurrentRegistration(netID)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +188,7 @@ func (s *Server) checkSchedandSend(operation *cvInterface.ClassOperations, curre
 
 func (s *Server) AddSPN(ctx context.Context, req *cvInterface.SPNRequest) (*cvInterface.SPNResponse, error) {
 	response := cvInterface.SPNResponse{Valid: false, Result: cvInterface.ResultClass_ERROR}
-	student, err := parseJWT(req.Token)
+	student, err := s.parseJWT(req.Token)
 	dprint("Received SPN Request for User: ", student)
 	if err != nil {
 		log.Panic("ERROR Parsing JWT")
@@ -226,7 +235,7 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 		indices = append(indices, class.Index)
 	}
 
-	student, err := parseJWT(req.Token)
+	student, err := s.parseJWT(req.Token)
 	dprint("Received Request for User: ", student)
 	if err != nil {
 		return &response, err
@@ -283,10 +292,7 @@ func main() {
 		log.Fatal("Failed to listen on port 8080: ", err)
 	}
 
-	s, err := NewServer()
-	if err != nil {
-		return
-	}
+	s := NewServer()
 	grpcServer := grpc.NewServer()
 	cvInterface.RegisterCourseValidationServer(grpcServer, s)
 	if err := grpcServer.Serve(lis); err != nil {

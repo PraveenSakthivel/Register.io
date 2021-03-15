@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	rvInterface "registerio/rv/protobuf"
+	secret "registerio/rv/secrets"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -19,18 +21,19 @@ import (
 var debug = false
 
 //DB Info
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
-)
+type DB struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
 
 type Server struct {
 	rvInterface.UnimplementedRegistrationValidationServer
 	students map[string]int
 	debug    bool
+	db       *DB
 }
 
 func dprint(msg ...interface{}) {
@@ -39,14 +42,27 @@ func dprint(msg ...interface{}) {
 	}
 }
 
+func buildDB() (*DB, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DB{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
+}
+
 // Retrieve list of all students from Database
 // TODO: Retrieve endpoint securely
-func retrieveData() map[string]int {
+func (s *DB) retrieveData() map[string]int {
 	students := make(map[string]int)
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -87,8 +103,12 @@ func retrieveData() map[string]int {
 
 //Pulls Info from DB and creates new Server Struct
 func NewServer() *Server {
-	students := retrieveData()
-	s := &Server{students: students, debug: debug}
+	db, err := buildDB()
+	if err != nil {
+		log.Fatal("Error building database: ", err)
+	}
+	students := db.retrieveData()
+	s := &Server{students: students, debug: debug, db: db}
 	return s
 }
 

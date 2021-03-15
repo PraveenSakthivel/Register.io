@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net"
-	"os"
 	data "registerio/cv/preqreq/database"
 	prereqInterface "registerio/cv/preqreq/protobuf"
 
@@ -21,6 +20,7 @@ type Server struct {
 	//Prereq Store. Prereqs represented by a 2d array. Key is the class number. Each row is a prereq, each columns is a class that fulfills it (coreqs)
 	prereqs      map[string][][]data.Prereq
 	specialCases map[string][]int32 //Checks cases like class year and major
+	db           *data.DB
 }
 
 //debug print
@@ -32,22 +32,26 @@ func dprint(msg ...interface{}) {
 
 //Initialize any Server Variables
 func NewServer() *Server {
-	prereqs, err := data.GetPrereqs()
+	db, err := data.BuildDB()
 	if err != nil {
-		os.Exit(3)
+		log.Fatal("Error building database: ", err)
+	}
+	prereqs, err := db.GetPrereqs()
+	if err != nil {
+		log.Fatal("Error retrieving prereqs: ", err)
 	}
 	dprint("Prereqs: ", prereqs)
-	lookup, err := data.GetLookups()
+	lookup, err := db.GetLookups()
 	if err != nil {
-		os.Exit(3)
+		log.Fatal("Error retrieving lookups: ", err)
 	}
 	dprint("Lookup: ", lookup)
-	specialCases, err := data.GetSpecialCases()
+	specialCases, err := db.GetSpecialCases()
 	if err != nil {
-		os.Exit(3)
+		log.Fatal("Error retrieving special cases: ", err)
 	}
 	dprint("Special Cases: ", specialCases)
-	s := &Server{indexLookup: lookup, prereqs: prereqs, specialCases: specialCases}
+	s := &Server{indexLookup: lookup, prereqs: prereqs, specialCases: specialCases, db: db}
 	return s
 }
 

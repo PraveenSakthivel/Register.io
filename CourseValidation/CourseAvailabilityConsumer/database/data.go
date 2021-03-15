@@ -2,20 +2,22 @@ package data
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	secret "registerio/cv/consumer/secrets"
 
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
-)
+type DB struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
 
 type Consumer struct {
 	Index              string
@@ -24,11 +26,11 @@ type Consumer struct {
 	CurrentSize        int
 }
 
-func RetrieveState(index string) (Consumer, error) {
+func (s *DB) RetrieveState(index string) (Consumer, error) {
 	retval := Consumer{}
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -92,10 +94,10 @@ func RetrieveState(index string) (Consumer, error) {
 
 }
 
-func AddRegistration(netID string, index string) error {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+func (s *DB) AddRegistration(netID string, index string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -118,10 +120,10 @@ func AddRegistration(netID string, index string) error {
 	return nil
 }
 
-func RemoveRegistration(netID string, index string) error {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+func (s *DB) RemoveRegistration(netID string, index string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -142,4 +144,17 @@ func RemoveRegistration(netID string, index string) error {
 		return err
 	}
 	return nil
+}
+
+func BuildDB() (*DB, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DB{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
 }
