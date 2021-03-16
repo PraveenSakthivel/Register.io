@@ -37,18 +37,20 @@ func main() {
 
 	// Router & template Setup
 	router := gin.Default()
-	// router.Use(static.Serve("/", static.LocalFile("./views", true)))
 	router.HTMLRender = tempRender()
+	// router.Use(static.Serve("/", static.LocalFile("./views", true)))
 
 	// Intiialize SQLite DB
 	models.ConnectDB()
 
 	// Get index page
 	router.GET("/", func(c *gin.Context) {
-		token, valid := middleware.ValidToken(c)
-		// If valid present login page
-		if valid {
-			c.HTML(200, "index", gin.H{"userobj": token.Claims.(jwt.MapClaims)["name"]})
+		// token, valid := middleware.ValidToken(c)
+		message := authuser(c)
+		if message.Token != "" {
+			// If valid present login page
+			// if valid {
+			c.HTML(200, "index", gin.H{"userobj": message.Token})
 			return
 		}
 		// Present standard welcome page
