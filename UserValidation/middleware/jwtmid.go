@@ -5,28 +5,34 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"main/protobuf"
+	secret "main/secrets"
 	"main/service"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/proto"
 )
 
+type TokenSecret struct {
+	Token string `json:"TokenSecret"`
+}
+
 // Decrypt ...
 func Decrypt(encryptedString string) (decryptedString string) {
-	godotenv.Load("../.env")
-	key, _ := hex.DecodeString(os.Getenv("SECRET"))
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
 	enc, _ := hex.DecodeString(encryptedString)
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher([]byte(tokenObj.Token[0:32]))
 	if err != nil {
 		panic(err.Error())
 	}
@@ -50,11 +56,13 @@ func Decrypt(encryptedString string) (decryptedString string) {
 
 // Encrypt ...
 func Encrypt(stringToEncrypt string) (encryptedString string) {
-	godotenv.Load("../.env")
-	key, _ := hex.DecodeString(os.Getenv("SECRET"))
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
 	plaintext := []byte(stringToEncrypt)
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher([]byte(tokenObj.Token[0:32]))
 	if err != nil {
 		panic(err.Error())
 	}

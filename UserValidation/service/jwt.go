@@ -1,14 +1,13 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
-	"main/secret"
+	secret "main/secrets"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joho/godotenv"
 )
 
 // JWTService ...
@@ -40,17 +39,19 @@ func JWTAuthService() JWTService {
 	}
 }
 
+type TokenSecret struct {
+	Token string `json:"TokenSecret"`
+}
+
 // Get secret from .env file
 func getSecretKey() string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	if tokenObj.Token == "" {
+		return "secret"
 	}
-	secret, err := secret.GetTokenSecret("user/JWTEncryption")
-	if secret == "" {
-		secret = "secret"
-	}
-	return secret
+	return tokenObj.Token
 }
 
 // generate token and seed with netid information

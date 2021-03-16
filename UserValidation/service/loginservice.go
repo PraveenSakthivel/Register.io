@@ -19,8 +19,5 @@ func LoginUser(netid string, password string) bool {
 	// Check if user exists in DB
 	users := []models.User{}
 	models.DB.Where("netid = ? AND password = ?", netid, password).Find(&users)
-	if len(users) == 1 {
-		return true
-	}
-	return false
+	return len(users) == 1
 }

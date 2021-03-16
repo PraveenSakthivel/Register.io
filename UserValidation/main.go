@@ -47,10 +47,10 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		// token, valid := middleware.ValidToken(c)
 		message := authuser(c)
-		if message.Token != "" {
+		if message != nil {
 			// If valid present login page
 			// if valid {
-			c.HTML(200, "index", gin.H{"userobj": message.Token})
+			c.HTML(200, "index", gin.H{"userobj": message.Claims.(jwt.MapClaims)["name"]})
 			return
 		}
 		// Present standard welcome page
