@@ -3,8 +3,9 @@ package service
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
+
+	"main/secret"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
@@ -45,7 +46,7 @@ func getSecretKey() string {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	secret := os.Getenv("SECRET")
+	secret, err := secret.GetTokenSecret("user/JWTEncryption")
 	if secret == "" {
 		secret = "secret"
 	}
