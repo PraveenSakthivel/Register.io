@@ -12,7 +12,7 @@ import (
 
 // JWTService ...
 type JWTService interface {
-	GenerateToken(netid string, isUser bool, classes map[string]int, cases []int) string
+	GenerateToken(netid string, isUser bool, classes map[string]int, cases map[int]bool) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
@@ -20,8 +20,8 @@ type JWTService interface {
 type authCustomClaims struct {
 	Name         string         `json:"name"`
 	User         bool           `json:"user"`
-	Classes      map[string]int `json:"classes"`
-	SpecialCases []int          `json:"special"`
+	ClassHistory map[string]int `json:"classhistory"`
+	SpecialCases map[int]bool   `json:"special"`
 	jwt.StandardClaims
 }
 
@@ -53,7 +53,7 @@ func getSecretKey() string {
 }
 
 // generate token and seed with netid information
-func (service *jwtServices) GenerateToken(netid string, isUser bool, classes map[string]int, cases []int) string {
+func (service *jwtServices) GenerateToken(netid string, isUser bool, classes map[string]int, cases map[int]bool) string {
 	claims := &authCustomClaims{
 		netid,
 		isUser,

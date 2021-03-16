@@ -68,7 +68,11 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 		cases := students.SpecialCases
 		casesArray := []int{}
 		cases.Scan(casesArray)
-		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes, casesArray)
+		casesMap := make(map[int]bool)
+		for _, value := range casesArray {
+			casesMap[value] = true
+		}
+		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes, casesMap)
 	}
 	return ""
 }
