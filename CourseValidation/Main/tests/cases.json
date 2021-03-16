@@ -1,7 +1,7 @@
 [
     {
         "Case": "Single Signup",
-        "Token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTQ1NjA1MDUsImV4cCI6MTYxNTMyNjg1MiwibmFtZSI6InBzOTMxIiwiY2xhc3NIaXN0b3J5Ijp7IjE5MjoxMDEiOjQwMCwiMTkyOjEwMiI6NDAwfSwic3BlY2lhbENhc2VzIjp7IjEwIjp0cnVlfSwianRpIjoiY2JiZDk3NzItNTUzZS00ZWYxLThjZDUtMzQ0YzQxMGE5Y2NlIn0.mcQgFZwPO4sXDAm5GQ1YHngcDqWzTIt2-dTn9m9Fdog",
+        "Token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoicHM5MzEiLCJjbGFzc0hpc3RvcnkiOnsiMTkyOjEwMSI6NDAwLCIxOTI6MTAyIjo0MDB9LCJzcGVjaWFsQ2FzZXMiOnsiMTAiOnRydWV9fQ.kZhtV9ySi8KxxNH7PbomnqOBTai7vjRewRV2TmNkScI",
         "Classes": [
             {
                 "Index": "02345",

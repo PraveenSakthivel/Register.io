@@ -35,7 +35,7 @@ func main() {
 	fmt.Printf("Running %d Cases\n-------------------\n", len(cases))
 	casesPassed := 0
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial(":8080", grpc.WithInsecure())
+	conn, err := grpc.Dial("3.92.240.128:8080", grpc.WithInsecure())
 	if err != nil {
 		fmt.Printf("ERROR: Could not connect to server ", err)
 	}

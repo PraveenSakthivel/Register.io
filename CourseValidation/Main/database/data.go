@@ -115,8 +115,8 @@ func (s *DB) GetSPNs() (map[string]SPN, error) {
 	return retval, nil
 }
 
-func (s *DB) GetClassTimes() (map[string][]classTiming.ClassSlot, error) {
-	retval := make(map[string][]classTiming.ClassSlot)
+func (s *DB) GetClassTimes() (map[string][]*classTiming.ClassSlot, error) {
+	retval := make(map[string][]*classTiming.ClassSlot)
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		s.Host, s.Port, s.Username, s.Password, s.Dbname)

@@ -173,7 +173,7 @@ func printMap(course_times map[time.Weekday]*ClassSlot) {
 	for day, x := range course_times {
 		log.Println(day)
 		ptr := x
-		for ptr != nil {
+for ptr != nil {
 			log.Println(ptr.startTime.Format("03:04 PM") + " - " + ptr.endTime.Format("03:04 PM"))
 			ptr = ptr.next
 		}

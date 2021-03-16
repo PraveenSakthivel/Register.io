@@ -11,7 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
-const prereqEndpoint = ":8081"
+const prereqEndpoint = "3.228.3.112:8080"
 
 func CheckPrereqs(classHistory map[string]int32, indices []string, cases map[int32]bool) (*PrereqResponse, error) {
 	prereq := PrereqRequest{ClassHistory: classHistory, Indices: indices, Cases: cases}

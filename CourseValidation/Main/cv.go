@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -31,7 +32,7 @@ type Server struct {
 	svc         *sqs.SQS
 	queueLookup map[string]string
 	spns        map[string]data.SPN
-	timings     map[string][]classTiming.ClassSlot
+	timings     map[string][]*classTiming.ClassSlot
 	tokenSecret string
 	db          *data.DB
 }
@@ -53,6 +54,10 @@ type userClaims struct {
 	ClassHistory map[string]int32 `json:"classHistory"`
 	SpecialCases map[string]bool  `json:"specialCases"`
 	jwt.StandardClaims
+}
+
+type token struct {
+	TokenSecret string
 }
 
 //debug print
@@ -89,13 +94,15 @@ func NewServer() *Server {
 	if err != nil {
 		log.Fatal("ERROR: Cannot get token secret: ", err)
 	}
-	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings, tokenSecret: tokenSecret, db: db}
+	var Token token
+	json.Unmarshal([]byte(tokenSecret), &Token)
+
+	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings, tokenSecret: Token.TokenSecret, db: db}
 	return s
 }
 
 //Add secret decoding and check for validity
 func (s *Server) parseJWT(encodedToken string) (Student, error) {
-
 	token, err := jwt.ParseWithClaims(encodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("Invalid token %s", token.Header["alg"])
@@ -176,10 +183,10 @@ func (s *Server) getCurrentSchedule(netID string) (map[time.Weekday]*classTiming
 
 func (s *Server) checkSchedandSend(operation *cvInterface.ClassOperations, currentSched map[time.Weekday]*classTiming.ClassSlot, netID string, c *(chan classResult)) (bool, error) {
 	classTime := s.timings[operation.Index]
-	tmp, err := classTiming.CheckTimesAndInsert(classTime, currentSched)
+	good, err := classTiming.CheckTimesAndInsert(classTime, currentSched)
 	if err != nil {
 		return false, err
-	} else if tmp == nil {
+	} else if !good {
 		return false, nil
 	}
 	go s.sendRegRequest(netID, operation, *c)

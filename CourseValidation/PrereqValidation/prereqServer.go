@@ -122,7 +122,7 @@ func main() {
 	flag.Parse()
 	debug = *debugPrnt
 
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal("Failed to listen on port 8081: ", err)
 	}
