@@ -1,11 +1,11 @@
 package models
 
 import (
+	"encoding/json"
+	secret "main/secrets"
 	"net/url"
-	"os"
 
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
 
 	// sqlite
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -18,16 +18,40 @@ type Watchlist struct {
 }
 
 // DB ...
+type DBStruct struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
+
+func BuildDB() (*DBStruct, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DBStruct{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
+}
+
+// DB ...
 var DB *gorm.DB
 
 // ConnectDB ...
 func ConnectDB() {
-	godotenv.Load(".env")
+
+	dbobj, _ := BuildDB()
+
 	dsn := url.URL{
-		User:     url.UserPassword(os.Getenv("DBUSER"), os.Getenv("DBPASS")),
+		User:     url.UserPassword(dbobj.Username, dbobj.Password),
 		Scheme:   "postgres",
-		Host:     "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com:5432",
-		Path:     "maindb",
+		Host:     dbobj.Host + ":" + dbobj.Port,
+		Path:     dbobj.Dbname,
 		RawQuery: (&url.Values{"sslmode": []string{"disable"}}).Encode(),
 	}
 	database, err := gorm.Open("postgres", dsn.String())
