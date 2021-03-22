@@ -4,7 +4,7 @@
 // 	protoc        v3.14.0
 // source: tokenlist.proto
 
-package protobuf
+package Tokens
 
 import (
 	proto "github.com/golang/protobuf/proto"

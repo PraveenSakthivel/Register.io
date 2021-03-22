@@ -8,7 +8,7 @@ import (
 	"main/controller"
 	"main/middleware"
 	"main/models"
-	"main/protobuf"
+	Tokens "main/protobuf"
 	"main/service"
 	"net/http"
 
@@ -30,7 +30,7 @@ func tempRender() multitemplate.Renderer {
 	return r
 }
 
-func main() {
+func amain() {
 	// JWT login setup
 	jwtService := service.JWTAuthService()
 	loginController := controller.LoginHandler(jwtService)
@@ -94,14 +94,14 @@ func main() {
 				classes = append(classes, current...)
 			}
 			// fmt.Println(classes)
-			protomessage := protobuf.TokenList{}
+			protomessage := Tokens.Registrations{}
 			for _, class := range classes {
 				protomessage.Token = append(protomessage.Token, class.Name)
 			}
 			c.ProtoBuf(http.StatusFound, &protomessage)
 			return
 		}
-		protomessage := protobuf.TokenList{}
+		protomessage := Tokens.Registrations{}
 		c.ProtoBuf(http.StatusFound, &protomessage)
 
 	})
@@ -142,7 +142,7 @@ func main() {
 		if token != "" {
 			encToken := middleware.Encrypt(token)
 			// Set token to cookie & send back home
-			message := &protobuf.Token{Token: encToken}
+			message := &Tokens.Token{Token: encToken}
 			data, err := proto.Marshal(message)
 			stringarray := fmt.Sprint(data)
 			stringarray = stringarray[1 : len(stringarray)-1]
@@ -168,7 +168,7 @@ func main() {
 		if token != "" {
 			encToken := middleware.Encrypt(token)
 			// Set token to cookie & send back home
-			message := &protobuf.Token{Token: encToken}
+			message := &Tokens.Token{Token: encToken}
 			data, err := proto.Marshal(message)
 			stringarray := fmt.Sprint(data)
 			stringarray = stringarray[1 : len(stringarray)-1]
@@ -181,7 +181,7 @@ func main() {
 			c.ProtoBuf(http.StatusFound, message)
 			return
 		}
-		message := &protobuf.Token{Token: ""}
+		message := &Tokens.Token{Token: ""}
 		c.ProtoBuf(http.StatusFound, message)
 	})
 

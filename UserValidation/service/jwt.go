@@ -39,6 +39,7 @@ func JWTAuthService() JWTService {
 	}
 }
 
+// TokenSecret ...
 type TokenSecret struct {
 	Token string `json:"TokenSecret"`
 }

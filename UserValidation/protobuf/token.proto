@@ -1,6 +1,20 @@
 syntax="proto3";
-package main;
+package Tokens;
+option go_package = ".;Tokens";
 
 message Token {
       string token = 1;
+}
+
+message Registrations {
+      repeated string token = 1;
+}
+
+message Credentials{
+      string NetID = 1;
+      string Password = 2;
+}
+
+service LoginEndpoint {
+      rpc getLoginToken(Credentials) returns (Token){}
 }

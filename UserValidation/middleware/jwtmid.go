@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"main/protobuf"
+	Tokens "main/protobuf"
 	secret "main/secrets"
 	"main/service"
 	"strconv"
@@ -98,7 +98,7 @@ func GenBytes(data string) []byte {
 // ValidToken ...
 func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	// Get token from cookie and check if valid
-	prototoken := &protobuf.Token{}
+	prototoken := &Tokens.Token{}
 	cookiedata, err := c.Cookie("token")
 	if err != nil {
 		return nil, false
