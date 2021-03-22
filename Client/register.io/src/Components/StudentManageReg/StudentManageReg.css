@@ -18,12 +18,17 @@
 }
 
 .courseTable-container{
-    border: 1px solid rgb(236, 236, 236);
-    border-radius: 5px;
+    border: 2px solid rgb(236, 236, 236);
+    font-size: 15px;
 }
 
 .studentManageReg {
     margin-bottom: 5%;
+}
+
+.dx-g-bs4-table-cell{
+    padding-top: 12px !important;
+    border-left: 1px solid rgb(224, 224, 224);
 }
 
 .studentManageReg a {
@@ -31,27 +36,27 @@
 }
 
 .studentManageReg-radio{
-    border-color:  rgb(100, 100, 100);
-    color:  rgb(100, 100, 100);
+    border-color:  #6c757d;
+    color:  #6c757d;
     font-weight: 500;
     transition: 0.1s;
 }
 
 .studentManageReg-radio:hover{
-    background-color:  rgb(100, 100, 100);
-    border-color:  rgb(100, 100, 100);
+    background-color:  #6c757d;
+    border-color:  #6c757d;
     color: white;
 }
 
 input[type="radio"]:checked+.studentManageReg-radio{
-    background-color: rgb(100, 100, 100);
-    border-color: rgb(100, 100, 100);
+    background-color: #6c757d;
+    border-color: #6c757d;
     color: white;
 }
 
 input[type="radio"]:active+.studentManageReg-radio{
-    background-color:  rgb(100, 100, 100);
-    border-color:  rgb(100, 100, 100);
+    background-color:  #6c757d;
+    border-color:  #6c757d;
     color: white;
 }
 

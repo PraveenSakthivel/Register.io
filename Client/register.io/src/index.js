@@ -6,6 +6,10 @@ import './Components/Login/Login.css'
 import './Components/Navbar/Navbar.css'
 import './Components/Content/Content.css'
 import './Components/StudentManageReg/StudentManageReg.css'
+import './Components/Dashboard/Dashboard.css'
+import './Components/CourseLookup/CourseLookup.css'
+import './Components/CourseLookup/CourseTable.css'
+import './Components/ClassHistory/ClassHistory.css'
 
 import App from './App';
 

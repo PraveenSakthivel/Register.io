@@ -2,6 +2,9 @@ import React from 'react';
 import logo from '../../Assets/logo_navbar.png'
 import Navbar from '../Navbar/Navbar'
 import StudentManageReg from '../StudentManageReg/StudentManageReg'
+import CourseLookup from '../CourseLookup/CourseLookup'
+import Dashboard from '../Dashboard/Dashboard'
+import ClassHistory from '../ClassHistory/ClassHistory'
 
 class Content extends React.Component {
 
@@ -26,7 +29,7 @@ class Content extends React.Component {
         switch(this.state.componentID){
             case("Dashboard"):
                 if(userType == 1)
-                    page = <h1>Student Dashboard</h1>
+                    page = <Dashboard />
                 break;
             case("Student Account"):
                 page = <h1>Student Account</h1>
@@ -35,10 +38,10 @@ class Content extends React.Component {
                 page = <StudentManageReg />
                 break;
             case("Student Course Lookup"):
-                page = <h1>Student Course Lookup</h1>
+                page = <CourseLookup />
                 break;
             case("Student Class History"):
-                page = <h1>Student Class History</h1>
+                page = <ClassHistory />
                 break;
             case("Admin Dashboard"):
                 page = <h1>Admin Dashboard</h1>

@@ -8,6 +8,7 @@ import {
   TableEditColumn,
 } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
+//import EditPopupPlugin from './EditPopupPlugin'
 
 
 const getRowId = row => row.id;
@@ -77,15 +78,7 @@ class CourseTable extends React.Component {
 
     constructor(props) {
       super(props);
-      this.state = {rows:[
-        { id: 1, coursecode:93028, coursenumber: '01:198:352:01', coursename: 'Internet Technology', credits: 4.0, status: "Added!" },
-        { id: 2, coursecode:30284, coursenumber: '18:332:251:03', coursename: 'Probability and Random Processes', credits: 3.0, status: "Added!" },
-        { id: 3, coursecode:93028, coursenumber: '01:198:352:01', coursename: 'Internet Technology', credits: 4.0, status: "Pending Add" },
-        { id: 4, coursecode:30284, coursenumber: '18:332:251:03', coursename: 'Probability and Random Processes', credits: 3.0, status: "Class Filled" },
-        { id: 5, coursecode:93028, coursenumber: '01:198:352:01', coursename: 'Internet Technology', credits: 4.0, status: "PreReqs Not Met" },
-        { id: 6, coursecode:30284, coursenumber: '18:332:251:03', coursename: 'Probability and Random Processes', credits: 3.0, status: "Added!" }
-        ]
-      };
+      this.state = {rows:this.props.classes};
     }
 
     render() {
@@ -119,6 +112,7 @@ class CourseTable extends React.Component {
               changedRows = rows.filter(row => !deletedSet.has(row.id));
           }
           this.setState({rows: changedRows});
+          this.props.updateClasses(changedRows);
       };
 
       const tableColumnExtensions = [
@@ -158,26 +152,25 @@ class CourseTable extends React.Component {
         return <Table.Cell {...props} />;
       };
 
-
       return (
           <div className="courseTable-container">
-          <Grid
-              rows={this.state.rows}
-              columns={columns}
-              getRowId={getRowId}
-          >
-              <EditingState
-                onCommitChanges={commitChanges}
-              />
-              <Table cellComponent={Cell} tableComponent={TableComponent} columnExtensions={tableColumnExtensions} />
-              <TableHeaderRow />
-              <TableEditRow />
-              <TableEditColumn
-                showAddCommand
-                showDeleteCommand
-                commandComponent={Command}
-              />
-          </Grid>
+            <Grid
+                rows={this.state.rows}
+                columns={columns}
+                getRowId={getRowId}
+            >
+                <EditingState
+                  onCommitChanges={commitChanges}
+                />
+                <Table cellComponent={Cell} tableComponent={TableComponent} columnExtensions={tableColumnExtensions} />
+                <TableHeaderRow />
+                <TableEditRow />
+                <TableEditColumn
+                  showAddCommand
+                  showDeleteCommand
+                  commandComponent={Command}
+                />
+            </Grid>
           </div>
       );
     }

@@ -35,7 +35,7 @@ class Login extends React.Component {
                     <form class="card-body login-card-body">
 
                         <div class="login-header">
-                            <h1 style={{flex:.55}}>Login</h1> 
+                            <h1 style={{flex:.55, fontFamily:"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif"}}>Login</h1> 
                             <img style={{flex:.45}} src={logo}></img>
                         </div>
 

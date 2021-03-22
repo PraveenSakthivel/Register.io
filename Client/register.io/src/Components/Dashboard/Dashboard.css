@@ -1,0 +1,77 @@
+.dashboard-title{
+    background-color: rgb(255,255,255, .95);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding-top: 3.5%;
+    z-index: 1001;
+} 
+
+.dashboard-notifs{
+    margin-bottom: 2.5%;
+}
+
+.dashboard-notifs_sidescroll {
+    height: 95px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: -webkit-box;
+}
+
+.dashboard-notifs_cover{
+    background: linear-gradient(.25turn, #FFFFFF00, 90%, white);
+    pointer-events:none;
+}
+
+.dashboard-content{
+    margin-top: max(100px, 12.5%);
+}
+
+.dashboard-class{
+    margin-bottom: 5px;
+}
+
+.dx-scheduler-header{
+    visibility:hidden;
+    height: 0px;
+}
+
+.dx-scheduler-work-space{
+    padding-top: 0px !important;
+    margin-top: -56px !important;
+    background-color: #FFFFFF00 !important;
+    border-top: 0px !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    margin-bottom: 3.5%;
+}
+
+.dx-scheduler-cell-sizes-vertical {
+    height: 37px !important;
+}
+
+
+/* Changing theme color */
+.dx-scheduler-header-panel-cell.dx-scheduler-header-panel-current-time-cell{
+    color: var(--color-primary) !important;
+}
+
+.dx-scheduler-header-panel-cell.dx-scheduler-header-panel-current-time-cell::before{
+    background-color: var(--color-primary) !important;
+}
+
+.dx-scheduler-time-panel-cell.dx-scheduler-time-panel-current-time-cell::before{
+    background-color: var(--color-primary) !important;
+}
+
+.dx-scheduler-date-time-indicator{
+    background-color: var(--color-primary) !important;
+}
+
+.dx-scheduler-date-time-indicator::before{
+    color: var(--color-primary) !important;
+}
+
+.dx-scheduler-time-panel-cell.dx-scheduler-time-panel-current-time-cell{
+    color: var(--color-primary) !important;
+}
