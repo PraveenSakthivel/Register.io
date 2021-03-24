@@ -20,6 +20,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// TokenSecret ...
 type TokenSecret struct {
 	Token string `json:"TokenSecret"`
 }
@@ -34,21 +35,28 @@ func Decrypt(encryptedString string) (decryptedString string) {
 
 	block, err := aes.NewCipher([]byte(tokenObj.Token[0:32]))
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	nonceSize := aesGCM.NonceSize()
+
+	if len(enc) < nonceSize {
+		return ""
+	}
 
 	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
 
 	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	return fmt.Sprintf("%s", plaintext)
@@ -79,6 +87,20 @@ func Encrypt(stringToEncrypt string) (encryptedString string) {
 
 	ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
 	return fmt.Sprintf("%x", ciphertext)
+}
+
+// GenBytesGRPC ...
+func GenBytesGRPC(data string) []byte {
+	bytes := []byte{}
+	stringvals := strings.Split(data, "+")
+	for index := 0; index < len(stringvals); index++ {
+		value, err := strconv.Atoi(stringvals[index])
+		if err != nil {
+			return nil
+		}
+		bytes = append(bytes, byte(value))
+	}
+	return bytes
 }
 
 // GenBytes ...
@@ -124,4 +146,29 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	fmt.Println(err)
 	return nil, false
 
+}
+
+// ValidTokenGRPC ...
+func ValidTokenGRPC(tokenInput *Tokens.Token) (*jwt.Token, bool) {
+	encTokenString := tokenInput.Token
+	fmt.Println(encTokenString)
+	databytes := GenBytes(encTokenString)
+	if databytes == nil || len(databytes) == 0 {
+		return nil, false
+	}
+	newToken := &Tokens.Token{}
+	proto.Unmarshal(databytes, newToken)
+	tokenString := Decrypt(newToken.Token)
+	if tokenString == "" {
+		return nil, false
+	}
+	fmt.Println(tokenString)
+	token, err := service.JWTAuthService().ValidateToken(tokenString)
+	if token.Valid {
+		claims := token.Claims.(jwt.MapClaims)
+		fmt.Println(claims)
+		return token, true
+	}
+	fmt.Println(err)
+	return nil, false
 }

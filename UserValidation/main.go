@@ -80,31 +80,31 @@ func amain() {
 
 	})
 
-	router.GET("/viewreg_endpoint", func(c *gin.Context) {
-		message := authuser(c)
-		if message != nil {
+	// router.GET("/viewreg_endpoint", func(c *gin.Context) {
+	// 	message := authuser(c)
+	// 	if message != nil {
 
-			regs := []models.CourseRegistration{}
-			models.DB.Where("netid = ?", message.Claims.(jwt.MapClaims)["name"]).Find(&regs)
-			// fmt.Println(regs)
-			classes := []models.Soc{}
-			for _, reg := range regs {
-				current := []models.Soc{}
-				models.DB.Where("index = ?", reg.ClassIndex).First(&current)
-				classes = append(classes, current...)
-			}
-			// fmt.Println(classes)
-			protomessage := Tokens.Registrations{}
-			for _, class := range classes {
-				protomessage.Token = append(protomessage.Token, class.Name)
-			}
-			c.ProtoBuf(http.StatusFound, &protomessage)
-			return
-		}
-		protomessage := Tokens.Registrations{}
-		c.ProtoBuf(http.StatusFound, &protomessage)
+	// 		regs := []models.CourseRegistration{}
+	// 		models.DB.Where("netid = ?", message.Claims.(jwt.MapClaims)["name"]).Find(&regs)
+	// 		// fmt.Println(regs)
+	// 		classes := []models.Soc{}
+	// 		for _, reg := range regs {
+	// 			current := []models.Soc{}
+	// 			models.DB.Where("index = ?", reg.ClassIndex).First(&current)
+	// 			classes = append(classes, current...)
+	// 		}
+	// 		// fmt.Println(classes)
+	// 		protomessage := Tokens.Registrations{}
+	// 		for _, class := range classes {
+	// 			protomessage.Token = append(protomessage.Token, class.Name)
+	// 		}
+	// 		c.ProtoBuf(http.StatusFound, &protomessage)
+	// 		return
+	// 	}
+	// 	protomessage := Tokens.Registrations{}
+	// 	c.ProtoBuf(http.StatusFound, &protomessage)
 
-	})
+	// })
 
 	// Present login form
 	router.GET("/login", func(c *gin.Context) {

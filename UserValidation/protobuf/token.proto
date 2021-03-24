@@ -6,8 +6,26 @@ message Token {
       string token = 1;
 }
 
+message Class {
+      string Location = 1;
+      string Level = 2;
+      int64 School = 3;
+      int64 Department = 4;
+      int64 ClassNumber = 5;
+      string Index = 6;
+      string Name = 7;
+      string Section = 8;
+      string MeetingLocation = 9;
+      string MeetingTimes = 10;
+      string Exam = 11;
+      repeated string Instructors = 12;
+      repeated string Codes = 13;
+      string Synopsis = 14;
+      repeated string Books = 15;
+}
+
 message Registrations {
-      repeated string token = 1;
+      repeated Class Classes = 1;
 }
 
 message Credentials{
@@ -17,4 +35,5 @@ message Credentials{
 
 service LoginEndpoint {
       rpc getLoginToken(Credentials) returns (Token){}
+      rpc getCurrentRegistrations(Token) returns (Registrations) {}
 }

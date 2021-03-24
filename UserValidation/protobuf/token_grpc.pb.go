@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LoginEndpointClient interface {
 	GetLoginToken(ctx context.Context, in *Credentials, opts ...grpc.CallOption) (*Token, error)
+	GetCurrentRegistrations(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Registrations, error)
 }
 
 type loginEndpointClient struct {
@@ -38,11 +39,21 @@ func (c *loginEndpointClient) GetLoginToken(ctx context.Context, in *Credentials
 	return out, nil
 }
 
+func (c *loginEndpointClient) GetCurrentRegistrations(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Registrations, error) {
+	out := new(Registrations)
+	err := c.cc.Invoke(ctx, "/Tokens.LoginEndpoint/getCurrentRegistrations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoginEndpointServer is the server API for LoginEndpoint service.
 // All implementations must embed UnimplementedLoginEndpointServer
 // for forward compatibility
 type LoginEndpointServer interface {
 	GetLoginToken(context.Context, *Credentials) (*Token, error)
+	GetCurrentRegistrations(context.Context, *Token) (*Registrations, error)
 	mustEmbedUnimplementedLoginEndpointServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedLoginEndpointServer struct {
 
 func (UnimplementedLoginEndpointServer) GetLoginToken(context.Context, *Credentials) (*Token, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLoginToken not implemented")
+}
+func (UnimplementedLoginEndpointServer) GetCurrentRegistrations(context.Context, *Token) (*Registrations, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentRegistrations not implemented")
 }
 func (UnimplementedLoginEndpointServer) mustEmbedUnimplementedLoginEndpointServer() {}
 
@@ -84,6 +98,24 @@ func _LoginEndpoint_GetLoginToken_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoginEndpoint_GetCurrentRegistrations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Token)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginEndpointServer).GetCurrentRegistrations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Tokens.LoginEndpoint/getCurrentRegistrations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginEndpointServer).GetCurrentRegistrations(ctx, req.(*Token))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoginEndpoint_ServiceDesc is the grpc.ServiceDesc for LoginEndpoint service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var LoginEndpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getLoginToken",
 			Handler:    _LoginEndpoint_GetLoginToken_Handler,
+		},
+		{
+			MethodName: "getCurrentRegistrations",
+			Handler:    _LoginEndpoint_GetCurrentRegistrations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

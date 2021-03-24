@@ -13,14 +13,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
+func amain() {
 	// Router & template Setup
 	router := gin.Default()
 
 	// Intiialize SQLite DB
 	models.ConnectDB()
 
-	router.POST("/AddToList", func(c *gin.Context){
+	router.POST("/AddToList", func(c *gin.Context) {
 		netid := c.PostForm("NetID")
 		course := c.PostForm("Course")
 		entry := models.Watchlist{Netid: netid, Course: course}
@@ -32,7 +32,7 @@ func main() {
 		}
 	})
 
-	router.POST("/DropFromList", func(c *gin.Context){
+	router.POST("/DropFromList", func(c *gin.Context) {
 		netid := c.PostForm("NetID")
 		course := c.PostForm("Course")
 		result := models.DB.Where("netid = ? AND course = ?", netid, course).Delete(&models.Watchlist{})
@@ -43,7 +43,7 @@ func main() {
 		}
 	})
 
-	router.POST("/PingList", func(c *gin.Context){
+	router.POST("/PingList", func(c *gin.Context) {
 		course := c.PostForm("Course")
 		smtpServer := "smtp.gmail.com"
 		auth := smtp.PlainAuth(
@@ -53,13 +53,13 @@ func main() {
 			"smtp.gmail.com",
 		)
 		entries := []models.Watchlist{}
-		from := mail.Address{Name:"Register.io", Address: "registeriowatchlist@gmail.com"}
+		from := mail.Address{Name: "Register.io", Address: "registeriowatchlist@gmail.com"}
 		models.DB.Where("course = ?", course).Find(&entries)
-		
+
 		for _, entry := range entries {
 			recip := entry.Netid + "@scarletmail.rutgers.edu"
 			to := mail.Address{Name: "", Address: recip}
-			title := "Register.io=?utf-8?Q?=F0=9F=93=9A?= | Opening for "+entry.Course
+			title := "Register.io=?utf-8?Q?=F0=9F=93=9A?= | Opening for " + entry.Course
 			body := "There is currently an open space for the course: " + entry.Course + "\r\nThanks for using Register.io📚"
 			header := make(map[string]string)
 			header["From"] = from.String()
@@ -75,7 +75,7 @@ func main() {
 			message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(body))
 
 			err := smtp.SendMail(
-				smtpServer + ":587",
+				smtpServer+":587",
 				auth,
 				from.Address,
 				[]string{to.Address},
@@ -87,10 +87,9 @@ func main() {
 				return
 			}
 		}
-		
+
 		c.String(http.StatusOK, "Emails sent")
 	})
 
 	router.Run()
 }
-
