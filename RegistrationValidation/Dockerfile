@@ -19,6 +19,7 @@ WORKDIR /usr/bin
 COPY --from=build /src/registerio/rv/rv /go/bin/rv
 
 EXPOSE 8080
+EXPOSE 80
 
 CMD ["/go/bin/rv"]
 
