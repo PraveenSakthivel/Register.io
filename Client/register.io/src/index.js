@@ -10,6 +10,7 @@ import './Components/Dashboard/Dashboard.css'
 import './Components/CourseLookup/CourseLookup.css'
 import './Components/CourseLookup/CourseTable.css'
 import './Components/ClassHistory/ClassHistory.css'
+import './Components/MyAccount/MyAccount.css'
 
 import App from './App';
 

@@ -27,7 +27,7 @@ class ClassHistory extends React.Component {
                     <div class="classHistory-header">
                         <h5 style={{fontSize:"18px", paddingLeft:"1%", paddingRight:"max(2%, 15px)", paddingTop:"max(.7%, 7px)"}}>Semester &nbsp;📘: </h5>
                         <div class="classHistory-dropdown">
-                            <a style={{fontWeight:"500", fontSize:"15px"}} class="btn btn-secondary dropdown-toggle" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a href="" style={{fontWeight:"500", fontSize:"15px"}} class="btn btn-secondary dropdown-toggle" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 {this.state.classes[this.state.selectedSemester].semester}
                             </a>
 

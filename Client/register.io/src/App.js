@@ -1,9 +1,14 @@
 import React, { Component } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import Home from './Components/Home/Home'
+// components
 import Login from './Components/Login/Login'
 import Content from './Components/Content/Content'
+
+// backend
+import {endpoint} from '../src/Protobuf/endpoint.json'
+const { Student, Response } = require('../src/Protobuf/RV/rvInterface_pb.js');
+const { RegistrationValidationClient } = require('./Protobuf/RV/rvInterface_grpc_web_pb.js');
 
 class App extends Component {
 
@@ -30,7 +35,23 @@ class App extends Component {
     this.setState({userType:window.sessionStorage.getItem("userType")});
   }
 
+  request(){
+    var client = new RegistrationValidationClient('http://'+endpoint)
+
+    var request = new Student();
+    request.setNetid("ps931");
+
+    
+    client.checkRegVal(request, {  }, (err, response) => {
+      var res = new Response();
+      console.log(response);
+    });
+  }
+
   render() {
+
+    this.request();
+
 
     const isLoggedIn = this.state.loggedIn;
     const userType = this.state.userType;

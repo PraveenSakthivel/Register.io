@@ -5,6 +5,7 @@ import StudentManageReg from '../StudentManageReg/StudentManageReg'
 import CourseLookup from '../CourseLookup/CourseLookup'
 import Dashboard from '../Dashboard/Dashboard'
 import ClassHistory from '../ClassHistory/ClassHistory'
+import MyAccount from '../MyAccount/MyAccount'
 
 class Content extends React.Component {
 
@@ -28,11 +29,10 @@ class Content extends React.Component {
 
         switch(this.state.componentID){
             case("Dashboard"):
-                if(userType == 1)
-                    page = <Dashboard />
+                page = <Dashboard />
                 break;
             case("Student Account"):
-                page = <h1>Student Account</h1>
+                page = <MyAccount />
                 break;
             case("Student Manage Registration"):
                 page = <StudentManageReg />

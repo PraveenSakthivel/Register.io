@@ -13,13 +13,17 @@
     "cp-react-tree-table": "^1.0.0-beta.10",
     "devextreme": "20.2.5",
     "devextreme-react": "20.2.5",
+    "google-protobuf": "^3.15.6",
+    "grpc-web": "^1.2.1",
     "jquery": "^3.5.1",
     "popper.js": "^1.16.1",
+    "protoc-gen-grpc-web": "^1.2.1",
     "react": "^17.0.1",
     "react-big-calendar": "^0.33.2",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
+    "reactrpc": "^1.0.5",
     "web-vitals": "^0.2.4"
   },
   "scripts": {
