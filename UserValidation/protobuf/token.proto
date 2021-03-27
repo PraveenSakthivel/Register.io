@@ -24,8 +24,14 @@ message Class {
       repeated string Books = 15;
 }
 
+message Response{
+      string Token = 1;
+      int64  UserType = 2;
+}
+
 message Registrations {
-      repeated Class Classes = 1;
+      int64 UserType = 1;
+      repeated Class Classes = 2;
 }
 
 message Credentials{
@@ -34,6 +40,6 @@ message Credentials{
 }
 
 service LoginEndpoint {
-      rpc getLoginToken(Credentials) returns (Token){}
-      rpc getCurrentRegistrations(Token) returns (Registrations) {}
+      rpc GetLoginToken(Credentials) returns (Response){}
+      rpc GetCurrentRegistrations(Token) returns (Registrations) {}
 }

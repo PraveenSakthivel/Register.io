@@ -49,7 +49,8 @@ func (s *Server) GetCurrentRegistrations(ctx context.Context, in *Tokens.Token) 
 	token, valid := middleware.ValidTokenGRPC(in)
 
 	if valid {
-
+		user := models.User{}
+		models.DB.Where("netid = ?", token.Claims.(jwt.MapClaims)["name"]).First(&user)
 		regs := []models.CourseRegistration{}
 		models.DB.Where("netid = ?", token.Claims.(jwt.MapClaims)["name"]).Find(&regs)
 		// fmt.Println(regs)
@@ -79,6 +80,7 @@ func (s *Server) GetCurrentRegistrations(ctx context.Context, in *Tokens.Token) 
 			result.Classes = append(result.Classes, &reg)
 
 		}
+		result.UserType = int64(user.Type)
 		// fmt.Println(classes)
 
 		return &result, nil
@@ -87,16 +89,17 @@ func (s *Server) GetCurrentRegistrations(ctx context.Context, in *Tokens.Token) 
 }
 
 // GetLoginToken -- logs user in and returns token
-func (s *Server) GetLoginToken(ctx context.Context, creds *Tokens.Credentials) (*Tokens.Token, error) {
-	resp := Tokens.Token{Token: ""}
+func (s *Server) GetLoginToken(ctx context.Context, creds *Tokens.Credentials) (*Tokens.Response, error) {
+	resp := Tokens.Response{Token: "", UserType: -1}
 	token := s.LoginController.LoginEndpoint(creds)
 	if token != "" {
-
+		user := models.User{}
+		models.DB.Where("netid = ?", creds.NetID).First(&user)
 		resp.Token = middleware.Encrypt(token)
 		data, _ := proto.Marshal(&resp)
 		stringarray := fmt.Sprint(data)
 		stringarray = stringarray[1 : len(stringarray)-1]
-		return &Tokens.Token{Token: stringarray}, nil
+		return &Tokens.Response{Token: stringarray, UserType: int64(user.Type)}, nil
 	} else {
 		log.Println("WARNING: Invalid credentials", creds.NetID)
 	}

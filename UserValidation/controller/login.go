@@ -74,7 +74,9 @@ func (controller *loginController) Login(ctx *gin.Context) string {
 		for _, value := range casesArray {
 			casesMap[value] = true
 		}
-		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes, casesMap)
+		user := models.User{}
+		models.DB.Where("netid = ?", credential.NetID).Find(&user)
+		return controller.jWtService.GenerateToken(credential.NetID, true, user.Type, credential.Classes, casesMap)
 	}
 	return ""
 }
@@ -107,7 +109,9 @@ func (controller *loginController) LoginEndpoint(creds *Tokens.Credentials) stri
 		for _, value := range casesArray {
 			casesMap[value] = true
 		}
-		return controller.jWtService.GenerateToken(credential.NetID, true, credential.Classes, casesMap)
+		user := models.User{}
+		models.DB.Where("netid = ?", credential.NetID).Find(&user)
+		return controller.jWtService.GenerateToken(credential.NetID, true, user.Type, credential.Classes, casesMap)
 	}
 	return ""
 }
