@@ -50,6 +50,7 @@ type Soc struct {
 	Codes           pq.StringArray `gorm:"type:character varying[]"`
 	Synopsis        string
 	Books           pq.StringArray `gorm:"type:character varying[]"`
+	Credits         int
 }
 
 // CourseHistory ...

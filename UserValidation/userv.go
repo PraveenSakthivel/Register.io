@@ -77,6 +77,7 @@ func (s *Server) GetCurrentRegistrations(ctx context.Context, in *Tokens.Token) 
 			reg.Codes = class.Codes
 			reg.Synopsis = class.Synopsis
 			reg.Books = class.Books
+			reg.Credits = int64(class.Credits)
 			result.Classes = append(result.Classes, &reg)
 
 		}

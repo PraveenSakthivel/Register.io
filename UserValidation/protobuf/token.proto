@@ -22,6 +22,7 @@ message Class {
       repeated string Codes = 13;
       string Synopsis = 14;
       repeated string Books = 15;
+      int64 Credits = 16;
 }
 
 message Response{
