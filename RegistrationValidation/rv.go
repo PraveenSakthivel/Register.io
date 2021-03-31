@@ -116,10 +116,12 @@ func NewServer() *Server {
 func (s *Server) CheckRegVal(ctx context.Context, student *rvInterface.Student) (*rvInterface.Response, error) {
 	resp := rvInterface.Response{
 		Eligible: false,
+		Time:     -1,
 	}
 	// Check to see if student is eligible
 	if dateInt, ok := s.students[student.NetId]; ok {
-		date := time.Unix(int64(dateInt), 0)
+		resp.Time = int64(dateInt)
+		date := time.Unix(resp.Time, 0)
 		if time.Now().After(date) {
 			resp.Eligible = true
 		}

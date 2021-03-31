@@ -66,8 +66,12 @@ static_resources:
             - endpoint:
                 address:
                   socket_address:
-                    address: 3.239.33.153
+                    address: rv.registerio.co
                     port_value: 8080
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
   - name: cv
     connect_timeout: 0.25s
     type: logical_dns
@@ -80,8 +84,12 @@ static_resources:
             - endpoint:
                 address:
                   socket_address:
-                    address: 54.158.27.179
+                    address: cv.registerio.co
                     port_value: 8080
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
   - name: uv
     connect_timeout: 0.25s
     type: logical_dns
@@ -94,5 +102,9 @@ static_resources:
             - endpoint:
                 address:
                   socket_address:
-                    address: 54.147.122.77
+                    address: login.registerio.co
                     port_value: 8080
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext

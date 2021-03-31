@@ -2,6 +2,8 @@ package prereqInterface
 
 import (
 	context "context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"log"
 	"time"
@@ -9,9 +11,10 @@ import (
 	cvInterface "registerio/cv/main/protobuf"
 
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
-const prereqEndpoint = "3.228.3.112:8080"
+const prereqEndpoint = "prereq.registerio.co:8080"
 
 func CheckPrereqs(classHistory map[string]int32, indices []string, cases map[int32]bool) (*PrereqResponse, error) {
 	prereq := PrereqRequest{ClassHistory: classHistory, Indices: indices, Cases: cases}
@@ -19,8 +22,13 @@ func CheckPrereqs(classHistory map[string]int32, indices []string, cases map[int
 	var conn *grpc.ClientConn
 	var err = errors.New("TMP")
 	start := time.Now()
+	certPool, _ := x509.SystemCertPool()
+	config := &tls.Config{
+		InsecureSkipVerify: false,
+		RootCAs:            certPool,
+	}
 	for err != nil {
-		conn, err = grpc.Dial(prereqEndpoint, grpc.WithInsecure())
+		conn, err = grpc.Dial(prereqEndpoint, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 		defer conn.Close()
 		if err != nil {
 			log.Panic("ERROR: Unable to connect to Prereq Endpoint: ", err)
@@ -50,9 +58,11 @@ func EvalPrereqResults(preResult *PrereqResponse, results *map[string]cvInterfac
 	resultMap := *results
 	var retVal []*cvInterface.ClassOperations
 
-	for _, index := range preResult.InvalidIndices {
-		dprint("Invalid Index: ", index)
-		resultMap[index] = cvInterface.ResultClass_INVALID
+	if preResult.InvalidIndices != nil {
+		for _, index := range preResult.InvalidIndices {
+			dprint("Invalid Index: ", index)
+			resultMap[index] = cvInterface.ResultClass_INVALID
+		}
 	}
 
 	for index, status := range preResult.Results {

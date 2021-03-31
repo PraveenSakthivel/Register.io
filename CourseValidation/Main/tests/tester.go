@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +11,7 @@ import (
 	cvInterface "registerio/cv/main/protobuf"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type ClassRequest struct {
@@ -77,7 +80,12 @@ func main() {
 	}
 	casesPassed := 0
 	fmt.Printf("Running %d Cases\n-------------------\n", len(cases))
-	conn, err := grpc.Dial("54.158.27.179:8080", grpc.WithInsecure())
+	certPool, err := x509.SystemCertPool()
+	config := &tls.Config{
+		InsecureSkipVerify: false,
+		RootCAs:            certPool,
+	}
+	conn, err := grpc.Dial("cv.registerio.co:8080", grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	if err != nil {
 		fmt.Println("ERROR: Could not connect to server: ", err)
 		return
