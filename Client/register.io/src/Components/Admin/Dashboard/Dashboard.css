@@ -1,0 +1,12 @@
+.dashboardAdmin-title{
+    background-color: rgb(255,255,255, .95);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding-top: 3.5%;
+    z-index: 1001;
+} 
+
+.dashboardAdmin-content{
+    margin-top: max(100px, 12.5%);
+}

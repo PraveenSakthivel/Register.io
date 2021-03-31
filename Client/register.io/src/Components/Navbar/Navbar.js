@@ -7,6 +7,7 @@ class Navbar extends React.Component {
         super(props);
         this.state = {selectedComponentID: "Dashboard"}
         this.menuSelect = this.menuSelect.bind(this);
+        this.renderNavbar = this.renderNavbar.bind(this);
     }
 
     menuSelect (e) {
@@ -26,38 +27,73 @@ class Navbar extends React.Component {
         }
     }
 
+    renderNavbar(userType) {
+        switch(userType) {
+          case 0:
+            return  <div><img class="navbar-logo" src={logo}></img>
+                        <div class="navbar-item" id="Student Account">
+                            <p>🧑</p>
+                            <a class="navbar-item-child" >My Account</a>
+                        </div>
+                        <div class="navbar-item navbar-selected" id="Dashboard">
+                            <p>🏡</p>
+                            <a class="navbar-item-child">Dashboard</a>
+                        </div>
+                        <div class="navbar-item" id="Student Manage Registration">
+                            <p>✍️</p>
+                            <a class="navbar-item-child">Manage<br></br>Registration</a>
+                        </div>
+                        <div class="navbar-item" id="Student Course Lookup">
+                            <p>🔍</p>
+                            <a class="navbar-item-child">Course Lookup</a>
+                        </div>
+                        <div class="navbar-item" id="Student Class History">
+                            <p>⌛</p>
+                            <a class="navbar-item-child">Class History</a>
+                        </div>
+                        <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
+                            <p>⬅️</p>
+                            <a class="navbar-item-child">Logout</a>
+                        </div>
+                    </div>
+          case 1:
+            return  <div><img class="navbar-logo" src={logo}></img>
+                        <div class="navbar-item" id="Admin Account">
+                            <p>🧑</p>
+                            <a class="navbar-item-child" >My Account</a>
+                        </div>
+                        <div class="navbar-item navbar-selected" id="Dashboard">
+                            <p>🏡</p>
+                            <a class="navbar-item-child">Dashboard</a>
+                        </div>
+                        <div class="navbar-item" id="Class Manager">
+                            <p>✍️</p>
+                            <a class="navbar-item-child">Class<br></br>Manager</a>
+                        </div>
+                        <div class="navbar-item" id="Analytics">
+                            <p>📈</p>
+                            <a class="navbar-item-child">Analytics</a>
+                        </div>
+                        <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
+                            <p>⬅️</p>
+                            <a class="navbar-item-child">Logout</a>
+                        </div>
+                    </div>
+          case 2:
+              break;
+        }
+    }
+      
+
     render() {
 
         let userType = this.props.userType;
-        console.log(userType);
 
         return (
             <div onClick={this.menuSelect} class="navbar">
-                <img class="navbar-logo" src={logo}></img>
-                <div class="navbar-item" id="Student Account">
-                    <p>🧑</p>
-                    <a class="navbar-item-child" >My Account</a>
-                </div>
-                <div class="navbar-item navbar-selected" id="Dashboard">
-                    <p>🏡</p>
-                    <a class="navbar-item-child">Dashboard</a>
-                </div>
-                <div class="navbar-item" id="Student Manage Registration">
-                    <p>✍️</p>
-                    <a class="navbar-item-child">Manage<br></br>Registration</a>
-                </div>
-                <div class="navbar-item" id="Student Course Lookup">
-                    <p>🔍</p>
-                    <a class="navbar-item-child">Course Lookup</a>
-                </div>
-                <div class="navbar-item" id="Student Class History">
-                    <p>⌛</p>
-                    <a class="navbar-item-child">Class History</a>
-                </div>
-                <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
-                    <p>⬅️</p>
-                    <a class="navbar-item-child">Logout</a>
-                </div>
+
+                { this.renderNavbar(userType) }
+
             </div>
         );
     }

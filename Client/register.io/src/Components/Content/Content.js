@@ -1,11 +1,18 @@
 import React from 'react';
-import logo from '../../Assets/logo_navbar.png'
+
 import Navbar from '../Navbar/Navbar'
-import StudentManageReg from '../StudentManageReg/StudentManageReg'
-import CourseLookup from '../CourseLookup/CourseLookup'
-import Dashboard from '../Dashboard/Dashboard'
-import ClassHistory from '../ClassHistory/ClassHistory'
-import MyAccount from '../MyAccount/MyAccount'
+
+// Student Components
+import StudentManageReg from '../Student/StudentManageReg/StudentManageReg'
+import CourseLookup from '../Student/CourseLookup/CourseLookup'
+import StudentDashboard from '../Student/Dashboard/Dashboard'
+import ClassHistory from '../Student/ClassHistory/ClassHistory'
+import MyAccount from '../Student/MyAccount/MyAccount'
+
+// Admin Components
+import AdminDashboard from '../Admin/Dashboard/Dashboard'
+
+import Footer from '../Footer/Footer'
 
 class Content extends React.Component {
 
@@ -25,17 +32,18 @@ class Content extends React.Component {
         let userType = this.props.userType;
         let page;
 
-        console.log(userType);
-
         switch(this.state.componentID){
             case("Dashboard"):
-                page = <Dashboard />
+                if(userType == 0)
+                    page = <StudentDashboard />
+                else if(userType == 1)
+                    page = <AdminDashboard />
                 break;
             case("Student Account"):
                 page = <MyAccount />
                 break;
             case("Student Manage Registration"):
-                page = <StudentManageReg />
+                page = <StudentManageReg studentRegistrations={this.props.studentRegistrations} />
                 break;
             case("Student Course Lookup"):
                 page = <CourseLookup />
@@ -50,17 +58,17 @@ class Content extends React.Component {
                 page = <h1>Superuser Dashboard</h1>
                 break;
             case("Logout"):
-                window.sessionStorage.removeItem("loggedIn");
-                window.sessionStorage.removeItem("userType");
-                window.location.reload();
+                this.props.logout();
                 break;
         }
 
         return (
-            <div class="content">
+            <div class="content" >
                 <Navbar switchComponent={this.switchComponent} userType={this.props.userType} />
                 
                 {page}
+
+                {(this.state.componentID != "Logout") ? <Footer /> : <div></div>}
             </div>
         );
     }

@@ -7,62 +7,88 @@ import Content from './Components/Content/Content'
 
 // backend
 import {endpoint} from '../src/Protobuf/endpoint.json'
-const { Student, Response } = require('../src/Protobuf/RV/rvInterface_pb.js');
+const { Student, Response } = require('./Protobuf/RV/rvInterface_pb.js');
 const { RegistrationValidationClient } = require('./Protobuf/RV/rvInterface_grpc_web_pb.js');
+
+// backend
+const { Credentials, Registrations, Class, Token } = require('./Protobuf/UserV/token_pb.js');
+const { LoginEndpointClient } = require('./Protobuf/UserV/token_grpc_web_pb.js');
 
 class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {loggedIn:false, 
-                  userType:-1, //userType: (-1, Not Logged in), (1, Student), (2, Admin), (3, Superuser)
-                  studentCourses:"", 
-                  studentClass: 4,
-                  studentMajor: [198, 210],
-                  studentCredits: 103}; 
+    this.state = {
+                    userType:-1, //userType: (-2, Loading), (-1, Not Logged in), (0, Student), (1, Admin), (2, Superuser)
+                    studentRegistrations:[]
+                  }; 
     this.validateLogin = this.validateLogin.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
-  validateLogin(userType){
-    this.setState({loggedIn:true});
-    this.setState({userType:userType});
-    window.sessionStorage.setItem("loggedIn", true);
-    window.sessionStorage.setItem("userType", userType);
+  validateLogin(token){
+
+    window.sessionStorage.setItem("token", token);
+
+    var client = new LoginEndpointClient(endpoint)
+
+    let protoToken = new Token();
+    protoToken.setToken(token);
+
+    client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
+
+      if(response != '' && response != null){
+          this.setState({userType : response.getUsertype()})
+          if(response.getUsertype() == 0){ // if user is a student
+            this.setState({studentRegistrations : response.getClassesList()})
+            console.log(response.getClassesList())
+          }
+      } else {
+          this.logout();
+      }
+
+    });
+
+  }
+
+  logout(){
+    window.sessionStorage.clear();
+    window.location.reload();
   }
 
   componentWillMount(){
-    this.setState({loggedIn:window.sessionStorage.getItem("loggedIn")});
-    this.setState({userType:window.sessionStorage.getItem("userType")});
+    if(sessionStorage.getItem("token") != null){
+      this.validateLogin(sessionStorage.getItem("token"))
+      this.setState({userType : -2}) // gives component time to make validate login request
+    }
   }
 
   request(){
-    var client = new RegistrationValidationClient('http://'+endpoint)
+    var client = new RegistrationValidationClient(endpoint)
 
     var request = new Student();
     request.setNetid("ps931");
 
     
-    client.checkRegVal(request, {  }, (err, response) => {
-      var res = new Response();
-      console.log(response);
+    client.checkRegVal(request, { "grpc_service" : "rv" }, (err, response) => {
+      console.log(response.getEligible());
     });
   }
 
   render() {
+    this.request()
 
-    this.request();
-
-
-    const isLoggedIn = this.state.loggedIn;
     const userType = this.state.userType;
     let content;
-    if (!isLoggedIn) 
-      content = <Login validateLogin={this.validateLogin} />; 
+    if (userType == -1) 
+      content = <Login validateLogin = {this.validateLogin} />; 
+    else if(userType == -2)
+      content = <div></div>
     else 
-      content = <Content userType = {userType} />;
+      content = <Content logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} />;
 
     return (
-      <div class="App">
+      <div class="App" >
         <BrowserRouter>
           <Switch>
 

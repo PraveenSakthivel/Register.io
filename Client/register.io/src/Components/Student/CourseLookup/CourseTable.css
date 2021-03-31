@@ -11,12 +11,33 @@
 }
 
 .courseTable-addBtn:focus{
-  transition: 0.5s;
-  transition-property: border;
-  outline:0px;
-  border: 1px solid #9cb3ff;
-  border-radius: 5px;
+  border: none;
+  outline: none;
 }
+
+.courseTable-addBtn:hover{
+  text-decoration: underline;
+  outline: none;
+}
+
+.courseTable-deleteBtn{
+  border: none;
+}
+
+.courseTable-deleteBtn:focus{
+  border: none;
+  outline: none;
+}
+
+.courseTable-deleteBtn:hover{
+  text-decoration: underline;
+  outline: none;
+}
+
+
+
+
+
 
   /* Header */
   

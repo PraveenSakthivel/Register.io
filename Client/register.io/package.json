@@ -13,6 +13,7 @@
     "cp-react-tree-table": "^1.0.0-beta.10",
     "devextreme": "20.2.5",
     "devextreme-react": "20.2.5",
+    "dotenv": "^8.2.0",
     "google-protobuf": "^3.15.6",
     "grpc-web": "^1.2.1",
     "jquery": "^3.5.1",
@@ -23,6 +24,9 @@
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
+    "react-transition-group": "^4.4.1",
+    "reactjs-dropdown-component": "^1.2.0",
+    "reactjs-popup": "^2.0.4",
     "reactrpc": "^1.0.5",
     "web-vitals": "^0.2.4"
   },

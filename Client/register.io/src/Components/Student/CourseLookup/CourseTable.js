@@ -41,8 +41,6 @@ class CourseTable extends React.Component {
         }
       }
       treeValue.height = totalHeight;
-      console.log(totalHeight)
-      console.log(treeValue.height)
 
       return (
         <TreeTable
