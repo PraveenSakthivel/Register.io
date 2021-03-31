@@ -67,6 +67,8 @@ func BuildClassSlots(times string, location string) ([]*ClassSlot, error) {
 		case 'S':
 			wd = 6
 		default:
+			log.Println(times)
+			log.Println(timestr)
 			continue //Remove once data is fixed
 			return nil, errors.New("Invalid day of Week: " + string([]byte{dayOfWeek}))
 		}

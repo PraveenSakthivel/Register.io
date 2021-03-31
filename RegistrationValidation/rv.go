@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -11,8 +12,10 @@ import (
 	"os"
 	rvInterface "registerio/rv/protobuf"
 	secret "registerio/rv/secrets"
+	"strconv"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	_ "github.com/lib/pq"
 
 	"google.golang.org/grpc"
@@ -31,9 +34,21 @@ type DB struct {
 
 type Server struct {
 	rvInterface.UnimplementedRegistrationValidationServer
-	students map[string]int
-	debug    bool
-	db       *DB
+	students    map[string]int
+	debug       bool
+	tokenSecret string
+	db          *DB
+}
+
+type userClaims struct {
+	NetID        string           `json:"name"`
+	ClassHistory map[string]int32 `json:"classHistory"`
+	SpecialCases map[string]bool  `json:"specialCases"`
+	jwt.StandardClaims
+}
+
+type token struct {
+	TokenSecret string
 }
 
 func dprint(msg ...interface{}) {
@@ -53,6 +68,36 @@ func buildDB() (*DB, error) {
 		return nil, err
 	}
 	return &retval, nil
+}
+
+//Add secret decoding and check for validity
+func (s *Server) parseJWT(encodedToken string) (string, error) {
+	token, err := jwt.ParseWithClaims(encodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
+			return nil, fmt.Errorf("Invalid token %s", token.Header["alg"])
+		}
+		return []byte(s.tokenSecret), nil
+	})
+
+	if err != nil {
+		log.Println("Error Parsing JWT: ", err)
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(*userClaims); ok {
+		specCases := make(map[int32]bool)
+		for key, val := range claims.SpecialCases {
+			intkey, err := strconv.ParseInt(key, 10, 32)
+			if err != nil {
+				log.Println("Error Parsing Cases: ", err)
+				continue
+			}
+			specCases[int32(intkey)] = val
+		}
+		dprint(claims.NetID)
+		return claims.NetID, nil
+	}
+	return "", errors.New("Unable to Parse JWT")
 }
 
 // Retrieve list of all students from Database
@@ -108,7 +153,13 @@ func NewServer() *Server {
 		log.Fatal("Error building database: ", err)
 	}
 	students := db.retrieveData()
-	s := &Server{students: students, debug: debug, db: db}
+	tokenSecret, err := secret.GetTokenSecret("user/JWTEncryption")
+	if err != nil {
+		log.Fatal("ERROR: Cannot get token secret: ", err)
+	}
+	var Token token
+	json.Unmarshal([]byte(tokenSecret), &Token)
+	s := &Server{students: students, debug: debug, db: db, tokenSecret: Token.TokenSecret}
 	return s
 }
 
@@ -118,18 +169,25 @@ func (s *Server) CheckRegVal(ctx context.Context, student *rvInterface.Student) 
 		Eligible: false,
 		Time:     -1,
 	}
+
+	//Parse token
+	netID, err := s.parseJWT(student.Token)
+	if err != nil {
+		log.Println("ERROR: Invalid Token")
+		return &resp, err
+	}
 	// Check to see if student is eligible
-	if dateInt, ok := s.students[student.NetId]; ok {
+	if dateInt, ok := s.students[netID]; ok {
 		resp.Time = int64(dateInt)
 		date := time.Unix(resp.Time, 0)
 		if time.Now().After(date) {
 			resp.Eligible = true
 		}
 	} else {
-		log.Println("WARNING: Unidentifiable NetID ", student.NetId)
+		log.Println("WARNING: Unidentifiable NetID ", netID)
 	}
 
-	dprint("OK: Request with NetID: ", student.NetId)
+	dprint("OK: Request with NetID: ", netID)
 	return &resp, nil
 }
 

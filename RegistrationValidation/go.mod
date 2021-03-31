@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/aws/aws-sdk-go v1.37.30
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.5.1
 	github.com/improbable-eng/grpc-web v0.14.0 // indirect
 	github.com/klauspost/compress v1.11.12 // indirect

@@ -43,7 +43,7 @@ func main() {
 		InsecureSkipVerify: false,
 		RootCAs:            certPool,
 	}
-	conn, err = grpc.Dial("rv.registerio.co:8080", grpc.WithTransportCredentials(credentials.NewTLS(config)))
+	conn, err = grpc.Dial("localhost:8080", grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	if err != nil {
 		fmt.Printf("ERROR: Could not connect to server ", err)
 	}
@@ -51,9 +51,9 @@ func main() {
 	defer conn.Close()
 	server := rvInterface.NewRegistrationValidationClient(conn)
 
-	for netID, result := range cases {
-		fmt.Println("Trying Case: ", netID)
-		student := rvInterface.Student{NetId: netID}
+	for token, result := range cases {
+		fmt.Println("Trying Case: ", token)
+		student := rvInterface.Student{Token: token}
 
 		response, err := server.CheckRegVal(context.Background(), &student)
 
