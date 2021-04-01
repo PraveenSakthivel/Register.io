@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -101,9 +104,45 @@ func NewServer() *Server {
 	return s
 }
 
+func (s *Server) Decrypt(encryptedString string) (string, error) {
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
+	enc, _ := hex.DecodeString(encryptedString)
+
+	block, err := aes.NewCipher([]byte(s.tokenSecret[0:32]))
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	nonceSize := aesGCM.NonceSize()
+
+	if len(enc) < nonceSize {
+		return "", err
+	}
+
+	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
+
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	return fmt.Sprintf("%s", plaintext), nil
+}
+
 //Add secret decoding and check for validity
 func (s *Server) parseJWT(encodedToken string) (Student, error) {
-	token, err := jwt.ParseWithClaims(encodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
+	decodedToken, err := s.Decrypt(encodedToken)
+	if err != nil {
+		return Student{}, err
+	}
+	token, err := jwt.ParseWithClaims(decodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("Invalid token %s", token.Header["alg"])
 		}
