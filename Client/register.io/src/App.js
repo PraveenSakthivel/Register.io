@@ -67,16 +67,17 @@ class App extends Component {
     var client = new RegistrationValidationClient(endpoint)
 
     var request = new Student();
-    request.setNetid("ps931");
+    request.setToken(window.sessionStorage.getItem("token"));
 
     
     client.checkRegVal(request, { "grpc_service" : "rv" }, (err, response) => {
       console.log(response.getEligible());
+      console.log(response.getTime())
     });
   }
 
   render() {
-    this.request()
+    //this.request()
 
     const userType = this.state.userType;
     let content;

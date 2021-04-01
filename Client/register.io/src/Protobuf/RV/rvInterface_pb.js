@@ -1,4 +1,4 @@
-// source: src/Protobuf/RV/rvInterface.proto
+// source: rvInterface.proto
 /**
  * @fileoverview
  * @enhanceable
@@ -91,7 +91,7 @@ proto.rvInterface.Student.prototype.toObject = function(opt_includeInstance) {
  */
 proto.rvInterface.Student.toObject = function(includeInstance, msg) {
   var f, obj = {
-    netid: jspb.Message.getFieldWithDefault(msg, 1, "")
+    token: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
   if (includeInstance) {
@@ -130,7 +130,7 @@ proto.rvInterface.Student.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setNetid(value);
+      msg.setToken(value);
       break;
     default:
       reader.skipField();
@@ -161,7 +161,7 @@ proto.rvInterface.Student.prototype.serializeBinary = function() {
  */
 proto.rvInterface.Student.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNetid();
+  f = message.getToken();
   if (f.length > 0) {
     writer.writeString(
       1,
@@ -172,10 +172,10 @@ proto.rvInterface.Student.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional string NetId = 1;
+ * optional string Token = 1;
  * @return {string}
  */
-proto.rvInterface.Student.prototype.getNetid = function() {
+proto.rvInterface.Student.prototype.getToken = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -184,7 +184,7 @@ proto.rvInterface.Student.prototype.getNetid = function() {
  * @param {string} value
  * @return {!proto.rvInterface.Student} returns this
  */
-proto.rvInterface.Student.prototype.setNetid = function(value) {
+proto.rvInterface.Student.prototype.setToken = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
@@ -221,7 +221,8 @@ proto.rvInterface.Response.prototype.toObject = function(opt_includeInstance) {
  */
 proto.rvInterface.Response.toObject = function(includeInstance, msg) {
   var f, obj = {
-    eligible: jspb.Message.getBooleanFieldWithDefault(msg, 1, false)
+    eligible: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+    time: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -262,6 +263,10 @@ proto.rvInterface.Response.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setEligible(value);
       break;
+    case 2:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setTime(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -298,6 +303,13 @@ proto.rvInterface.Response.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = message.getTime();
+  if (f !== 0) {
+    writer.writeInt64(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -316,6 +328,24 @@ proto.rvInterface.Response.prototype.getEligible = function() {
  */
 proto.rvInterface.Response.prototype.setEligible = function(value) {
   return jspb.Message.setProto3BooleanField(this, 1, value);
+};
+
+
+/**
+ * optional int64 Time = 2;
+ * @return {number}
+ */
+proto.rvInterface.Response.prototype.getTime = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.rvInterface.Response} returns this
+ */
+proto.rvInterface.Response.prototype.setTime = function(value) {
+  return jspb.Message.setProto3IntField(this, 2, value);
 };
 
 

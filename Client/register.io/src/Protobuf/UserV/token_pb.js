@@ -308,7 +308,8 @@ proto.Tokens.Class.toObject = function(includeInstance, msg) {
     instructorsList: (f = jspb.Message.getRepeatedField(msg, 12)) == null ? undefined : f,
     codesList: (f = jspb.Message.getRepeatedField(msg, 13)) == null ? undefined : f,
     synopsis: jspb.Message.getFieldWithDefault(msg, 14, ""),
-    booksList: (f = jspb.Message.getRepeatedField(msg, 15)) == null ? undefined : f
+    booksList: (f = jspb.Message.getRepeatedField(msg, 15)) == null ? undefined : f,
+    credits: jspb.Message.getFieldWithDefault(msg, 16, 0)
   };
 
   if (includeInstance) {
@@ -404,6 +405,10 @@ proto.Tokens.Class.deserializeBinaryFromReader = function(msg, reader) {
     case 15:
       var value = /** @type {string} */ (reader.readString());
       msg.addBooks(value);
+      break;
+    case 16:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setCredits(value);
       break;
     default:
       reader.skipField();
@@ -536,6 +541,13 @@ proto.Tokens.Class.serializeBinaryToWriter = function(message, writer) {
   if (f.length > 0) {
     writer.writeRepeatedString(
       15,
+      f
+    );
+  }
+  f = message.getCredits();
+  if (f !== 0) {
+    writer.writeInt64(
+      16,
       f
     );
   }
@@ -866,6 +878,24 @@ proto.Tokens.Class.prototype.addBooks = function(value, opt_index) {
  */
 proto.Tokens.Class.prototype.clearBooksList = function() {
   return this.setBooksList([]);
+};
+
+
+/**
+ * optional int64 Credits = 16;
+ * @return {number}
+ */
+proto.Tokens.Class.prototype.getCredits = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 16, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.Tokens.Class} returns this
+ */
+proto.Tokens.Class.prototype.setCredits = function(value) {
+  return jspb.Message.setProto3IntField(this, 16, value);
 };
 
 

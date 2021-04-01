@@ -54,7 +54,7 @@ class RegistrationTable extends React.Component {
                                         <Popup overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
                                             <div class="registrationTable-popup">
                                                 <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
-                                                    <h5>Add Classes</h5>
+                                                    <h5>Add Classes 📝</h5>
                                                     <hr style={{marginRight:"7.5%"}}></hr>
                                                 </div>
                                                 <div class="registrationTable-popupContent" style={{display:"flex"}}>
@@ -74,6 +74,7 @@ class RegistrationTable extends React.Component {
                                                 <div style={{display:"flex", marginTop:"2.5%", width: "100%", justifyContent:"flex-end", paddingRight:"7.5%"}}>
                                                     <button style={{fontSize:"14px"}} onClick={() => this.onCourseAdd()} type="button" class="btn btn-primary">Add</button>
                                                 </div>
+                                                <hr style={{marginRight:"7.5%", marginTop:"10%"}}></hr>
                                             </div>
                                         </Popup>
                                     </div>
