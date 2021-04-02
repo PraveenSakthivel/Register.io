@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"main/controller"
 	"main/middleware"
@@ -17,7 +16,6 @@ import (
 	_ "github.com/lib/pq"
 
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/proto"
 )
 
 var debug = false
@@ -97,14 +95,14 @@ func (s *Server) GetLoginToken(ctx context.Context, creds *Tokens.Credentials) (
 		user := models.User{}
 		models.DB.Where("netid = ?", creds.NetID).First(&user)
 		resp.Token = middleware.Encrypt(token)
-		data, _ := proto.Marshal(&resp)
-		stringarray := fmt.Sprint(data)
-		stringarray = stringarray[1 : len(stringarray)-1]
-		return &Tokens.Response{Token: stringarray, UserType: int64(user.Type)}, nil
-	} else {
-		log.Println("WARNING: Invalid credentials", creds.NetID)
+		resp.UserType = int64(user.Type)
+		// data, _ := proto.Marshal(&resp)
+		// stringarray := fmt.Sprint(data)
+		// stringarray = stringarray[1 : len(stringarray)-1]
+		// return &Tokens.Response{Token: stringarray, UserType: int64(user.Type)}, nil
+		return &resp, nil
 	}
-
+	log.Println("WARNING: Invalid credentials", creds.NetID)
 	dprint("OK: Logged in with NetID: ", creds.NetID)
 	return &resp, nil
 }

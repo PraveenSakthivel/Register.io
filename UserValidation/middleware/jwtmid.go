@@ -152,13 +152,13 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 func ValidTokenGRPC(tokenInput *Tokens.Token) (*jwt.Token, bool) {
 	encTokenString := tokenInput.Token
 	fmt.Println(encTokenString)
-	databytes := GenBytes(encTokenString)
-	if databytes == nil || len(databytes) == 0 {
-		return nil, false
-	}
-	newToken := &Tokens.Token{}
-	proto.Unmarshal(databytes, newToken)
-	tokenString := Decrypt(newToken.Token)
+	// databytes := GenBytes(encTokenString)
+	// if databytes == nil || len(databytes) == 0 {
+	// return nil, false
+	// }
+	// newToken := &Tokens.Token{}
+	// proto.Unmarshal(databytes, newToken)
+	tokenString := Decrypt(encTokenString)
 	if tokenString == "" {
 		return nil, false
 	}
