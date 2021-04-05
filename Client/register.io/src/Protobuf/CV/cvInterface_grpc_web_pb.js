@@ -150,5 +150,85 @@ proto.cvInterface.CourseValidationPromiseClient.prototype.changeRegistration =
 };
 
 
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.cvInterface.SPNRequest,
+ *   !proto.cvInterface.SPNResponse>}
+ */
+const methodDescriptor_CourseValidation_AddSPN = new grpc.web.MethodDescriptor(
+  '/cvInterface.CourseValidation/AddSPN',
+  grpc.web.MethodType.UNARY,
+  proto.cvInterface.SPNRequest,
+  proto.cvInterface.SPNResponse,
+  /**
+   * @param {!proto.cvInterface.SPNRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.cvInterface.SPNResponse.deserializeBinary
+);
+
+
+/**
+ * @const
+ * @type {!grpc.web.AbstractClientBase.MethodInfo<
+ *   !proto.cvInterface.SPNRequest,
+ *   !proto.cvInterface.SPNResponse>}
+ */
+const methodInfo_CourseValidation_AddSPN = new grpc.web.AbstractClientBase.MethodInfo(
+  proto.cvInterface.SPNResponse,
+  /**
+   * @param {!proto.cvInterface.SPNRequest} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.cvInterface.SPNResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.cvInterface.SPNRequest} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.Error, ?proto.cvInterface.SPNResponse)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.cvInterface.SPNResponse>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.cvInterface.CourseValidationClient.prototype.addSPN =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/cvInterface.CourseValidation/AddSPN',
+      request,
+      metadata || {},
+      methodDescriptor_CourseValidation_AddSPN,
+      callback);
+};
+
+
+/**
+ * @param {!proto.cvInterface.SPNRequest} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.cvInterface.SPNResponse>}
+ *     Promise that resolves to the response
+ */
+proto.cvInterface.CourseValidationPromiseClient.prototype.addSPN =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/cvInterface.CourseValidation/AddSPN',
+      request,
+      metadata || {},
+      methodDescriptor_CourseValidation_AddSPN);
+};
+
+
 module.exports = proto.cvInterface;
 

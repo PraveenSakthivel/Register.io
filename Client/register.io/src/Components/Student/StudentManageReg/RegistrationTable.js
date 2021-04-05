@@ -1,13 +1,10 @@
 import React from 'react';
 import { TreeTable, TreeState } from 'cp-react-tree-table';
 import Popup from "reactjs-popup"
+import CountdownTimer from './CountdownTimer'
 
 // backend
-import {endpoint} from '../../../Protobuf/endpoint.json'
-const { RegistrationRequest, ClassOperations, ReqOp, RegistrationResponse } = require('../../../Protobuf/CV/cvInterface_pb');
-const { CourseValidationClient } = require('../../../Protobuf/CV/cvInterface_grpc_web_pb');
-const { Student, Response } = require('../../../Protobuf/RV/rvInterface_pb.js');
-const { RegistrationValidationClient } = require('../../../Protobuf/RV/rvInterface_grpc_web_pb.js');
+import { CVRequest } from '../../../Protobuf/RequestMaker'
 
 class RegistrationTable extends React.Component {
 
@@ -16,28 +13,42 @@ class RegistrationTable extends React.Component {
       
       this.state = {
         treeValue: TreeState.create(this.props.classes),
-        enableRegistration: false,
-        childrenFontSize: '15px'
+        enableRegister: false,
+        registerTime: '',
+        childrenFontSize: '15px',
+        popupOpen: false
       };
 
       this.onCourseDrop = this.onCourseDrop.bind(this);
       this.onCourseAdd = this.onCourseAdd.bind(this);
     }
 
-    // deprecated, but still works haha might have to update l8r
-    componentWillReceiveProps(prop) {
-      this.setState({ treeValue: TreeState.create(prop.classes) });
+    componentDidMount = () => {
+        this.setState({ treeValue: TreeState.create(this.props.classes) });
+        this.setState({ enableRegister: this.props.enableRegister })
+        this.setState({ registerTime: this.props.registerTime })
     }
 
     render() {
 
       const { treeValue } = this.state;
+
+      if(treeValue.data.length == 0){
+        this.setState({ treeValue : TreeState.create([ {data: { coursecode:'', coursenumber: '', coursename: '', credits: '', status: '' } }]) })
+      }
+
       let totalHeight = 0;
       for(let i = 0; i < treeValue.data.length; i++){
         treeValue.data[i].metadata.height = 50;
         totalHeight += 50;
       }
       treeValue.height = totalHeight;
+
+      let style = {}
+      if(!this.state.enableRegister)
+        style = {fontSize:"14px", pointerEvents:"none", height:"35px", backgroundColor:"grey"}
+      else
+        style = {fontSize:"14px"}
 
       return (
         <TreeTable
@@ -51,7 +62,7 @@ class RegistrationTable extends React.Component {
                 renderCell={this.renderIndexCell}
                 renderHeaderCell={() => 
                                     <div>
-                                        <Popup overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
+                                        <Popup open={this.state.popupOpen} overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
                                             <div class="registrationTable-popup">
                                                 <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
                                                     <h5>Add Classes 📝</h5>
@@ -71,8 +82,13 @@ class RegistrationTable extends React.Component {
                                                         {this.indexComponent(8)}
                                                     </div>
                                                 </div>
-                                                <div style={{display:"flex", marginTop:"2.5%", width: "100%", justifyContent:"flex-end", paddingRight:"7.5%"}}>
-                                                    <button style={{fontSize:"14px"}} onClick={() => this.onCourseAdd()} type="button" class="btn btn-primary">Add</button>
+                                                <div style={{display:"flex", justifyContent:"flex-end", marginTop:"2.5%", width: "100%",  paddingRight:"7.5%"}}>
+                                                    <div style={{paddingTop:"5px", paddingRight:"5%"}}>
+                                                        <CountdownTimer date={new Date(this.state.registerTime)} />
+                                                    </div>
+                                                    <div>
+                                                        <button style={style} onClick={() => this.onCourseAdd()} type="button" class="btn btn-primary">Add</button> 
+                                                    </div>
                                                 </div>
                                                 <hr style={{marginRight:"7.5%", marginTop:"10%"}}></hr>
                                             </div>
@@ -111,16 +127,21 @@ class RegistrationTable extends React.Component {
         </TreeTable>
      );
     }
-  
-    onCourseAdd = () => {
-        let courseList = []
-        for(let i = 1; i <= 8; i++){
-            let val = document.getElementById('index' + i).value
 
-            if(val != '')
-                courseList.push({Index : val, Op : "ADD"})
+    onCourseAdd = () => {
+        if(this.state.enableRegister){
+            let courseList = []
+            for(let i = 1; i <= 8; i++){
+                let val = document.getElementById('index' + i).value
+
+                if(val != ''){
+                    courseList.push({val:val, reqop:'ADD'})
+                }
+            }
+            console.log( CVRequest(courseList) )
         }
-        console.log(courseList)
+        else{
+        }
     }
 
     onCourseDrop = (row) => {
@@ -132,17 +153,6 @@ class RegistrationTable extends React.Component {
 
             this.handleOnChange(data)
         }
-    }
-
-    registrationValidation = () => {
-        var client = new RegistrationValidationClient("http://" + endpoint)
-
-        var request = new Student();
-        request.setToken(sessionStorage.getItem("token"))
-    
-        client.checkRegVal(request, { "grpc_service" : "rv" }, (err, response) => {
-            this.setState({enableRegistration : response.getEligible()})
-        });
     }
 
     handleOnChange = (data) => {

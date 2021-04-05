@@ -8,7 +8,8 @@ class CourseTable extends React.Component {
       
       this.state = {
         treeValue: TreeState.create(this.props.data),
-        childrenFontSize: "15px"
+        childrenFontSize: "15px",
+        enableRegister: this.props.enableRegister
       };
     }
 
@@ -125,11 +126,15 @@ class CourseTable extends React.Component {
     renderAddCell = (row) => {
       return(
         <div>
-          {(row.data.name == null)
+          {(row.data.name == null && this.state.enableRegister)
             ?
               <button onClick={this.onCourseAdd(row)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
             :
-              <a style={{fontWeight:"600"}}>PreReqs</a>
+              (row.data.name != null)
+              ?
+                <a style={{fontWeight:"600"}}>PreReqs</a>
+              :
+                <div></div>
           }
         </div>
       );

@@ -10,7 +10,8 @@ class CourseLookup extends React.Component {
         this.state = {
             selectedDept: 0,
             selectedSemester: 0,
-            classes: data
+            classes: data,
+            enableRegister : false
         }
         this.dropdownDeptHandler = this.dropdownDeptHandler.bind(this);
         this.dropdownSemesterHandler = this.dropdownSemesterHandler.bind(this);
@@ -57,7 +58,7 @@ class CourseLookup extends React.Component {
 
                 </div>
                 <div class="courseLookup-content">
-                    <CourseTable data={this.state.classes[this.state.selectedSemester].departments[this.state.selectedDept].courses} />
+                    <CourseTable data={this.state.classes[this.state.selectedSemester].departments[this.state.selectedDept].courses} enableRegister={this.state.enableRegister} />
                 </div>
             </div>
         );

@@ -2,6 +2,9 @@ import React from 'react';
 import 'bootstrap/js/dist/dropdown';
 import 'bootstrap/js/dist/button';
 import RegistrationTable from './RegistrationTable'
+var Dropdown = require('react-simple-dropdown')
+var DropdownTrigger = Dropdown.DropdownTrigger
+var DropdownContent = Dropdown.DropdownContent
 
 class StudentManageReg extends React.Component {
 
@@ -35,6 +38,7 @@ class StudentManageReg extends React.Component {
     }
 
     render() {
+
         return (
             <div class="studentManageReg">
                 <div class="studentManageReg-title">
@@ -54,7 +58,9 @@ class StudentManageReg extends React.Component {
                         </div>
                     </div>
                     <div class="studentManageReg-registrationContent">
-                        <RegistrationTable updateClasses={this.updateClasses} classes={this.state.classes} studentRegistrations = {this.props.studentRegistrations} />
+                        <div>
+                            <RegistrationTable updateClasses={this.updateClasses} classes={this.state.classes} studentRegistrations = {this.props.studentRegistrations} enableRegister={this.props.enableRegister} registerTime={this.props.registerTime} />
+                        </div>
                     </div>
                 </div>
                 

@@ -20,7 +20,9 @@ class App extends Component {
     super(props);
     this.state = {
                     userType:-1, //userType: (-2, Loading), (-1, Not Logged in), (0, Student), (1, Admin), (2, Superuser)
-                    studentRegistrations:[]
+                    studentRegistrations:[],
+                    enableRegister:false,
+                    registerTime:''
                   }; 
     this.validateLogin = this.validateLogin.bind(this);
     this.logout = this.logout.bind(this);
@@ -37,9 +39,10 @@ class App extends Component {
 
     client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
 
-      if(response != '' && response != null){
+      if(response != null && response != ''){
           this.setState({userType : response.getUsertype()})
           if(response.getUsertype() == 0){ // if user is a student
+            this.RVRequest()
             this.setState({studentRegistrations : response.getClassesList()})
             console.log(response.getClassesList())
           }
@@ -58,26 +61,26 @@ class App extends Component {
 
   componentWillMount(){
     if(sessionStorage.getItem("token") != null){
+      this.setState({userType : -2})   
       this.validateLogin(sessionStorage.getItem("token"))
-      this.setState({userType : -2}) // gives component time to make validate login request
     }
   }
 
-  request(){
+  RVRequest(){
     var client = new RegistrationValidationClient(endpoint)
 
     var request = new Student();
-    request.setToken(window.sessionStorage.getItem("token"));
+    request.setToken(window.sessionStorage.getItem("token").toString());
 
     
     client.checkRegVal(request, { "grpc_service" : "rv" }, (err, response) => {
-      console.log(response.getEligible());
-      console.log(response.getTime())
+        this.setState({enableRegister : response.getEligible()})
+        this.setState({registerTime : response.getTime()})
+        console.log(response.getEligible())
     });
   }
 
   render() {
-    //this.request()
 
     const userType = this.state.userType;
     let content;
@@ -86,7 +89,7 @@ class App extends Component {
     else if(userType == -2)
       content = <div></div>
     else 
-      content = <Content logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} />;
+      content = <Content logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
 
     return (
       <div class="App" >

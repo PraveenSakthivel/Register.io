@@ -73,3 +73,48 @@ input[type="radio"]:focus+.studentManageReg-radio{
     width: min(40vw, 500px);
     height: min(80vh, 500px);
 }
+
+
+
+
+
+
+
+
+.countdown-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-family: 'Poppins';
+}
+
+.countdown-item {
+    color: #111;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    line-height: 20px;
+    margin: 10px;
+    padding-top: 10px;
+    position: relative;
+    width: 70px;
+    height: 70px;
+}
+
+.countdown-item span {
+    color: #333;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.countdown-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 70px;
+}
