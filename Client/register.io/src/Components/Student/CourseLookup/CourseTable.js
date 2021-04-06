@@ -8,8 +8,10 @@ class CourseTable extends React.Component {
       
       this.state = {
         treeValue: TreeState.create(this.props.data),
-        childrenFontSize: "15px",
-        enableRegister: this.props.enableRegister
+        childrenFontSize: "14px",
+        enableRegister: this.props.enableRegister,
+        heavyFontWeight: "400",
+        fontWeight: 400
       };
     }
 
@@ -132,7 +134,7 @@ class CourseTable extends React.Component {
             :
               (row.data.name != null)
               ?
-                <a style={{fontWeight:"600"}}>PreReqs</a>
+                <a style={{fontWeight:"600", textDecoration:"underline"}}>PreReqs</a>
               :
                 <div></div>
           }
@@ -185,7 +187,7 @@ class CourseTable extends React.Component {
     renderFourthCell = (row) => {
         return (
             <div>
-              {(row.data.openSections != null)
+              {(row.data.status == null)
                   ?
                   (
                       <div>
@@ -196,7 +198,7 @@ class CourseTable extends React.Component {
                   )
                   :
                   (
-                    (row.data.status == 'open')
+                    (row.data.status)
                         ?
                             <span style={{fontWeight: "500", fontSize: this.state.childrenFontSize, color:"#009432", paddingLeft: (row.metadata.depth * 10) + 'px'}}>Open</span>
                         :
@@ -213,7 +215,7 @@ class CourseTable extends React.Component {
               {(row.data.credits != null)
                   ?
                   (
-                      <span style={{paddingLeft: "10px", fontWeight: "600"}}>{row.data.credits}</span>
+                      <span style={{paddingLeft: "10px", fontWeight: this.state.heavyFontWeight}}>{row.data.credits}</span>
                   )
                   :
                   (
@@ -230,7 +232,7 @@ class CourseTable extends React.Component {
             {(row.data.courseCode != null)
                 ?
                 (
-                    <span style={{fontWeight: "600"}}>{row.data.courseCode}</span>
+                    <span style={{fontWeight: this.state.heavyFontWeight}}>{row.data.courseCode}</span>
                 )
                 :
                 (
@@ -254,9 +256,9 @@ class CourseTable extends React.Component {
             }
             {(row.data.name != null)
               ? 
-                <span style={{fontWeight: "600"}}>{row.data.name}</span> 
+                <span style={{fontWeight: "500"}}>{row.data.name}</span> 
               : 
-                <span style={{fontWeight: "600", fontSize: this.state.childrenFontSize}}>{row.data.section}</span>
+                <span style={{fontWeight: this.state.heavyFontWeight, fontSize: this.state.childrenFontSize}}>{row.data.section}</span>
               }
           </div>
         );

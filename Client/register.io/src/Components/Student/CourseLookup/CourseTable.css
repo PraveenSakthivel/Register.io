@@ -1,8 +1,8 @@
 .cp_tree-table {
-    font-size: 15px;
+    font-size: 14px;
     color: #040402;
     background: #fff;
-    border: 2px solid rgba(141, 141, 141, 0.2);
+    border: 1.5px solid rgba(141, 141, 141, 0.2);
     font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   }
   
@@ -42,9 +42,10 @@
   /* Header */
   
   .cp_tree-table .cp_tree-table_header {
-    color: rgb(0, 0, 0);
-    border-bottom: 1px solid rgb(175, 175, 175);
-    font-weight: 700;
+    color: white;
+    border-bottom: 1.5px solid rgb(231, 231, 231);
+    font-weight: 600;
+    background-color: rgb(233, 91, 91);
   }
 
   
@@ -64,17 +65,21 @@
     padding: 0 10px;
   }
 
+
+  /* stripes & columns
   .cp_tree-table .cp_tree-table_cell,
   .cp_tree-table{
     border-right: 1px solid rgb(221, 221, 221);
   }
 
-  .cp_tree-table_row:nth-of-type(odd){
-    background-color: rgb(238, 238, 238);
+*/
+  .cp_tree-table_row:nth-of-type(even){
+    background-color: rgb(243, 243, 243);
   }
 
+
+
   .cp_tree-table_row{
-    transition-duration: 0.5s;
     border-bottom: 1px solid rgb(228, 228, 228);
   }
   

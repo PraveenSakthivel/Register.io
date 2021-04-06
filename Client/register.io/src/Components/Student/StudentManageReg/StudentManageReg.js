@@ -2,9 +2,6 @@ import React from 'react';
 import 'bootstrap/js/dist/dropdown';
 import 'bootstrap/js/dist/button';
 import RegistrationTable from './RegistrationTable'
-var Dropdown = require('react-simple-dropdown')
-var DropdownTrigger = Dropdown.DropdownTrigger
-var DropdownContent = Dropdown.DropdownContent
 
 class StudentManageReg extends React.Component {
 
