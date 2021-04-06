@@ -46,7 +46,7 @@ class Content extends React.Component {
                 page = <StudentManageReg studentRegistrations={this.props.studentRegistrations} enableRegister = {this.props.enableRegister} registerTime = {this.props.registerTime} />
                 break;
             case("Student Course Lookup"):
-                page = <CourseLookup />
+                page = <CourseLookup enableRegister = {this.props.enableRegister} registerTime = {this.props.registerTime} />
                 break;
             case("Student Class History"):
                 page = <ClassHistory />

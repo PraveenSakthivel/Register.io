@@ -4,9 +4,7 @@ import logo from '../../Assets/logo_full.png';
 
 
 // backend
-import {endpoint} from '../../Protobuf/endpoint.json'
-const { Credentials, Registrations, Response, Class, Token } = require('../../Protobuf/UserV/token_pb.js');
-const { LoginEndpointClient } = require('../../Protobuf/UserV/token_grpc_web_pb.js');
+import { LoginRequest } from '../../Protobuf/RequestMaker'
 
 class Login extends React.Component {
 
@@ -23,26 +21,18 @@ class Login extends React.Component {
 
     login(){
 
-        if(this.state.netid == 'admin') // temporary, to work on admin
-            this.props.validateLogin(1, null);
-        else if(this.state.netid == '' || this.state.password == '')
+        if(this.state.netid == '' || this.state.password == '')
             this.setState({ invalidLogin : true })
-        else{
-            var client = new LoginEndpointClient(endpoint)
+        else
+            LoginRequest({ netid: this.state.netid, password: this.state.password }, this.loginCallback)
 
-            var request = new Credentials();
-            request.setNetid(this.state.netid);
-            request.setPassword(this.state.password);
-            console.log("try login")
+    }
 
-            client.getLoginToken(request, { "grpc_service" : "uv" }, (err, response) => {
-                if(response.getToken() == '')
-                    this.setState({invalidLogin:true})
-                else
-                    this.props.validateLogin(response.getToken())
-            });
-        }
-
+    loginCallback = (serverResponse) =>{
+        if(serverResponse == null || serverResponse == 'Invalid Login' || serverResponse.token == null )
+            this.setState({invalidLogin:true})
+        else if(serverResponse.token != null)
+            this.props.validateLogin(serverResponse.token)
     }
 
     handleKeyPress = (event) => {

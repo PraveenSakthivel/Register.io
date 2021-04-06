@@ -138,10 +138,14 @@ class RegistrationTable extends React.Component {
                     courseList.push({val:val, reqop:'ADD'})
                 }
             }
-            console.log( CVRequest(courseList) )
+            CVRequest(courseList, this.courseAddCallback) 
         }
         else{
         }
+    }
+
+    courseAddCallback = ( serverResponse ) =>{
+        console.log(serverResponse)
     }
 
     onCourseDrop = (row) => {

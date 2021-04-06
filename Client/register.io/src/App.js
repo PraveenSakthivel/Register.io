@@ -6,13 +6,7 @@ import Login from './Components/Login/Login'
 import Content from './Components/Content/Content'
 
 // backend
-import {endpoint} from '../src/Protobuf/endpoint.json'
-const { Student, Response } = require('./Protobuf/RV/rvInterface_pb.js');
-const { RegistrationValidationClient } = require('./Protobuf/RV/rvInterface_grpc_web_pb.js');
-
-// backend
-const { Credentials, Registrations, Class, Token } = require('./Protobuf/UserV/token_pb.js');
-const { LoginEndpointClient } = require('./Protobuf/UserV/token_grpc_web_pb.js');
+import { ValidateLogin, RVRequest } from './Protobuf/RequestMaker'
 
 class App extends Component {
 
@@ -29,29 +23,20 @@ class App extends Component {
   }
 
   validateLogin(token){
-
     window.sessionStorage.setItem("token", token);
+    ValidateLogin( { token: token }, this.validateLoginCallback )
+  }
 
-    var client = new LoginEndpointClient(endpoint)
-
-    let protoToken = new Token();
-    protoToken.setToken(token);
-
-    client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
-
-      if(response != null && response != ''){
-          this.setState({userType : response.getUsertype()})
-          if(response.getUsertype() == 0){ // if user is a student
-            this.RVRequest()
-            this.setState({studentRegistrations : response.getClassesList()})
-            console.log(response.getClassesList())
-          }
-      } else {
-          this.logout();
-      }
-
-    });
-
+  validateLoginCallback = (serverResponse) => {
+      if(serverResponse != null && serverResponse != ''){
+        this.setState({userType : serverResponse.usertype})
+        if(serverResponse.usertype == 0){ // if user is a student
+          this.setState({studentRegistrations : serverResponse.classlist}) // store the student's current registrations
+          RVRequest( {}, this.registrationCallback ) // check if student is eligible to register
+        }
+      } 
+      else 
+        this.logout();
   }
 
   logout(){
@@ -66,18 +51,9 @@ class App extends Component {
     }
   }
 
-  RVRequest(){
-    var client = new RegistrationValidationClient(endpoint)
-
-    var request = new Student();
-    request.setToken(window.sessionStorage.getItem("token").toString());
-
-    
-    client.checkRegVal(request, { "grpc_service" : "rv" }, (err, response) => {
-        this.setState({enableRegister : response.getEligible()})
-        this.setState({registerTime : response.getTime()})
-        console.log(response.getEligible())
-    });
+  registrationCallback = (serverResponse) => {
+    this.setState({enableRegister : serverResponse.eligible})
+    this.setState({registerTime : serverResponse.time})
   }
 
   render() {
