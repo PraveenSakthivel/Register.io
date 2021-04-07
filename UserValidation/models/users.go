@@ -33,6 +33,16 @@ type CourseRegistration struct {
 	ClassIndex string
 }
 
+// Tabler ...
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (Soc) TableName() string {
+	return "soc"
+}
+
 // Soc ...
 type Soc struct {
 	Location        string
