@@ -1,5 +1,6 @@
 import React from 'react';
 import Schedule from './Schedule'
+import { Dropdown } from 'reactjs-dropdown-component'
 
 class Dashboard extends React.Component {
 
@@ -73,16 +74,29 @@ class Dashboard extends React.Component {
                     </div>
                     <div class="dashboard-schedule" style={{marginBottom:"100px"}}>
                         <h5 style={{fontSize:"18px", paddingLeft:"1%", paddingTop:"max(1%, 10px)"}}>My Schedule&nbsp;&nbsp;📅</h5>
-                        <div style={{paddingLeft:"2.5%", paddingTop:"max(1.5%, 15px)", display:"flex"}}>
-                            <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#e74c3c", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
-                                <p style={{fontWeight:"500"}}>: Busch &nbsp;&nbsp;</p>
-                            <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#3498db", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
-                                <p style={{fontWeight:"500"}}>: Livingston &nbsp;&nbsp;</p>
-                            <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#2ecc71", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
-                                <p style={{fontWeight:"500"}}>: College Ave &nbsp;&nbsp;</p>
-                            <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#f39c12", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
-                                <p style={{fontWeight:"500"}}>: Cook Douglass</p>
-                            <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%"}}>Credits 💰:&nbsp;&nbsp;17.0</p>
+                        <div style={{display:"flex", marginTop:"20px", marginBottom:"1%"}}>
+                            <div style={{paddingLeft:"1%", paddingRight:"15px", width:"fit-content"}}>
+                                <p title="Semester" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Semester 📘&nbsp;</p>
+                                <Dropdown
+                                    name="semesters"
+                                    title="Spring 2021"
+                                    list={[{ label:"Spring 2021", value:"Spring 2021" }]}
+                                    onChange={ () => "nohting" }
+                                />
+                            </div>
+                            <div style={{display:"block", width:"100%", marginTop:"25px"}}>
+                                <div style={{paddingLeft:"min(10px, 2.5%)", display:"flex"}}>
+                                    <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#e74c3c", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
+                                        <p style={{fontWeight:"500"}}>: Busch &nbsp;&nbsp;</p>
+                                    <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#3498db", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
+                                        <p style={{fontWeight:"500"}}>: Livingston &nbsp;&nbsp;</p>
+                                    <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#2ecc71", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
+                                        <p style={{fontWeight:"500"}}>: College Ave &nbsp;&nbsp;</p>
+                                    <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#f39c12", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
+                                        <p style={{fontWeight:"500"}}>: Cook Douglass</p>
+                                    <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%"}}>Credits 💰:&nbsp;&nbsp;17.0</p>
+                                </div>
+                            </div>
                         </div>
                         <Schedule />
                         <div style={{paddingLeft:"2.5%"}}>

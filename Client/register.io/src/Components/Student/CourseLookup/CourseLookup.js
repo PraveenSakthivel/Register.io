@@ -14,8 +14,9 @@ class CourseLookup extends React.Component {
             selectedSemester: 0,
             classes: data,
             visibleClasses: [],
-            enableRegister : false,
             searchTerm: '',
+            viewOpenSections: true,
+            viewClosedSections: true,
             depts : []
         }
         this.dropdownDeptHandler = this.dropdownDeptHandler.bind(this);
@@ -69,7 +70,6 @@ class CourseLookup extends React.Component {
     }
 
     countSections(data){
-
         for(let i = 0; i < data.length; i++){
             let open = 0
             let closed = 0
@@ -116,16 +116,16 @@ class CourseLookup extends React.Component {
 
                 <div class="courseLookup-header"> 
 
-                    <div style={{paddingLeft:"2px", marginRight:"5%", width:"max(350px, 30%)"}}>
-                        <p style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Search 🔍&nbsp;</p>
+                    <div style={{paddingLeft:"2px", marginRight:"3.5%", width:"max(350px, 30%)"}}>
+                        <p title="Search by Class Name" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Search 🔍&nbsp;</p>
                         <SearchField 
                             placeholder='Search by Class Name'
                             onChange={this.searchClasses}
                         />
                     </div>
 
-                    <div class="courseLookup-dropdown" style={{paddingRight:"2.5%"}}>
-                        <p style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Department 🏬&nbsp;</p>
+                    <div class="courseLookup-dropdown" style={{paddingRight:"3.5%"}}>
+                        <p title="Select Department" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Department 🏬&nbsp;</p>
                         <Dropdown
                             name="departments"
                             title="All Departments"
@@ -135,21 +135,29 @@ class CourseLookup extends React.Component {
                         />
                     </div>
 
-                    <div style={{fontSize:"15px"}} >
-                        <p style={{fontSize:"12px", marginBottom:'7.5px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Section Status 🔓&nbsp;</p>
+                    <div style={{fontSize:"15px", paddingRight:"1.5%"}} >
+                        <p title="Show me open and/or closed sections" style={{fontSize:"12px", marginBottom:'9px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Section Status 🔓&nbsp;</p>
                         <div class="form-check form-check-inline" >
-                            <input class="form-check-input" type="checkbox" id="openSections" checked value="option1"></input>
+                            <input class="form-check-input" type="checkbox" id="openSections" value="option1" defaultChecked></input>
                             <label class="form-check-label" for="inlineCheckbox1">Open</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="closedSections" checked value="option2"></input>
+                            <input class="form-check-input" type="checkbox" id="closedSections" value="option2" defaultChecked></input>
                             <label class="form-check-label" for="inlineCheckbox2">Closed</label>
+                        </div>
+                    </div>
+
+                    <div style={{fontSize:"15px"}} >
+                        <p title="Classes that don't conflict with current registrations" style={{fontSize:"12px", marginBottom:'9px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Fits My Schedule 🧩&nbsp;</p>
+                        <div class="form-check form-check-inline" >
+                            <input class="form-check-input" type="checkbox" id="openSections" value="option1"></input>
+                            <label class="form-check-label" for="inlineCheckbox1">Compatible Only</label>
                         </div>
                     </div>
 
                 </div>
                 <div class="courseLookup-content">
-                    <CourseTable data={ this.state.visibleClasses } enableRegister={this.state.enableRegister} />
+                    <CourseTable data={ this.state.visibleClasses } enableRegister={this.props.enableRegister} />
                 </div>
             </div>
         );

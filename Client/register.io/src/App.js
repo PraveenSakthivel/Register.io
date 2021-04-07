@@ -65,7 +65,7 @@ class App extends Component {
     else if(userType == -2)
       content = <div></div>
     else 
-      content = <Content logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
+      content = <Content validateLogin = {this.validateLogin} logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
 
     return (
       <div class="App" >

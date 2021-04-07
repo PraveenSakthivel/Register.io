@@ -60,9 +60,10 @@ class RegistrationTable extends React.Component {
   
             <TreeTable.Column 
                 renderCell={this.renderIndexCell}
+                grow={0.75}
                 renderHeaderCell={() => 
                                     <div>
-                                        <Popup open={this.state.popupOpen} overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
+                                        <Popup open={this.state.popupOpen} overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#ffffff00", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
                                             <div class="registrationTable-popup">
                                                 <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
                                                     <h5>Add Classes 📝</h5>
@@ -100,6 +101,7 @@ class RegistrationTable extends React.Component {
             <TreeTable.Column 
                 renderCell={this.renderSecondCell}
                 renderHeaderCell={() => <span>Course Code</span>}
+                grow={0.75}
                 />
 
             <TreeTable.Column 
@@ -146,6 +148,7 @@ class RegistrationTable extends React.Component {
 
     courseAddCallback = ( serverResponse ) =>{
         console.log(serverResponse)
+        this.props.validateLogin(window.sessionStorage.getItem('token'))
     }
 
     onCourseDrop = (row) => {

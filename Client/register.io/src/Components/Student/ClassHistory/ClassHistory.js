@@ -1,5 +1,6 @@
 import React from 'react';
 import Schedule from './Schedule'
+import { Dropdown } from 'reactjs-dropdown-component'
 
 class ClassHistory extends React.Component {
 
@@ -7,13 +8,24 @@ class ClassHistory extends React.Component {
         super(props);
         this.state = {
             selectedSemester: 0,
+            semesters: [],
             classes: data
         }
         this.dropdownSemesterHandler = this.dropdownSemesterHandler.bind(this);
     }
     
-    dropdownSemesterHandler(e) {
-        this.setState({selectedSemester:e.target.id});
+    dropdownSemesterHandler(item, name) {
+        this.setState({selectedSemester:item.value});
+    }
+
+    formatSemesters() {
+        let sems = this.state.classes
+        let formatted = []
+        for(let i = 0; i < sems.length; i++){
+            let sem = sems[i].semester
+            formatted.push({ label: sem, value: i })
+        }
+        return formatted
     }
 
     render() {
@@ -25,17 +37,19 @@ class ClassHistory extends React.Component {
                 </div>
                 <div class="classHistory-content">
                     <div class="classHistory-header">
-                        <h5 style={{fontSize:"18px", paddingLeft:"1%", paddingRight:"max(2%, 15px)", paddingTop:"max(.7%, 7px)"}}>Semester &nbsp;📘: </h5>
-                        <div class="classHistory-dropdown">
-                            <a href="" style={{fontWeight:"500", fontSize:"15px"}} class="btn btn-secondary dropdown-toggle" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {this.state.classes[this.state.selectedSemester].semester}
-                            </a>
 
-                            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                {this.state.classes.map(s => (<a id={s.id} onClick={this.dropdownSemesterHandler} class="dropdown-item" >{s.semester}</a>))} 
-                            </div>
-                        </div>  
-                        <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%"}}>Credits 💰:&nbsp;&nbsp;17.0</p>
+                        <div style={{paddingLeft:"2px", paddingRight:"3.5%"}}>
+                            <p title="Semester" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Semester 📘&nbsp;</p>
+                            <Dropdown
+                                name="semesters"
+                                title="Spring 2021"
+                                list={this.formatSemesters()}
+                                onChange={ this.dropdownSemesterHandler }
+                            />
+                        </div>
+
+                        <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%", marginTop:"15px"}}>Credits 💰:&nbsp;&nbsp;17.0</p>
+
                     </div>
       
                     <Schedule classes={this.state.classes[this.state.selectedSemester].classes} locationColor={locationColor} />

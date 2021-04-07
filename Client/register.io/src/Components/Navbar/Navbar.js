@@ -1,5 +1,6 @@
 import React from 'react';
 import logo from '../../Assets/logo_navbar.png'
+import { Redirect } from 'react-router-dom'
 
 class Navbar extends React.Component {
 
@@ -30,7 +31,7 @@ class Navbar extends React.Component {
     renderNavbar(userType) {
         switch(userType) {
           case 0:
-            return  <div><img class="navbar-logo" src={logo}></img>
+            return  <div><img onDoubleClick={this.inconspicious} class="navbar-logo" src={logo}></img>
                         <div class="navbar-item" id="Student Account">
                             <p>🧑</p>
                             <a class="navbar-item-child" >My Account</a>
@@ -46,10 +47,6 @@ class Navbar extends React.Component {
                         <div class="navbar-item" id="Student Course Lookup">
                             <p>🔍</p>
                             <a class="navbar-item-child">Course Lookup</a>
-                        </div>
-                        <div class="navbar-item" id="Student Class History">
-                            <p>⌛</p>
-                            <a class="navbar-item-child">Class History</a>
                         </div>
                         <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
                             <p>⬅️</p>
@@ -84,6 +81,9 @@ class Navbar extends React.Component {
         }
     }
       
+    inconspicious(){  
+        window.location.assign('http://github.com/rishabr17/Jumpy-Jeb');
+    }
 
     render() {
 

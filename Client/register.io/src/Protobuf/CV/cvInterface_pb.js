@@ -964,8 +964,9 @@ proto.cvInterface.SPNResponse.prototype.setResult = function(value) {
  * @enum {number}
  */
 proto.cvInterface.ResultClass = {
-  OK: 0,
-  PREREQ: 1,
+  NONE: 0,
+  OK: 1,
+  PREREQ: 2,
   TIME: 3,
   INVALID: 5,
   ERROR: 6,
@@ -976,9 +977,10 @@ proto.cvInterface.ResultClass = {
  * @enum {number}
  */
 proto.cvInterface.ReqOp = {
-  ADD: 0,
-  DROP: 1,
-  SPN: 2
+  NONEN: 0,
+  ADD: 1,
+  DROP: 2,
+  SPN: 3
 };
 
 goog.object.extend(exports, proto.cvInterface);

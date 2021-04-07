@@ -66,6 +66,8 @@ export const CVRequest = ( data, callback ) =>{
 
     }
 
+    console.log(courses)
+
     if(courses.length == 0){
         callback([]);
         return;
@@ -78,7 +80,6 @@ export const CVRequest = ( data, callback ) =>{
     request.setToken(window.sessionStorage.getItem("token").toString());
     
     client.changeRegistration(request, { "grpc_service" : "cv" }, (err, response) => {
-        console.log(response)
         callback(response);
     });
 
