@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	secret "registerio/cv/consumer/secrets"
+	consumerState "registerio/cv/consumer-lambda/protobuf"
+	secret "registerio/cv/consumer-lambda/secrets"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
+	"google.golang.org/protobuf/proto"
 )
 
 type DB struct {
@@ -17,6 +20,7 @@ type DB struct {
 	Host     string `json:"host"`
 	Port     string `json:"port"`
 	Dbname   string `json:"dbname"`
+	Cache    string
 }
 
 type Consumer struct {
@@ -27,6 +31,44 @@ type Consumer struct {
 }
 
 func (s *DB) RetrieveState(index string) (Consumer, error) {
+	log.Println("Checking Cache")
+	mc := memcache.New(s.Cache)
+	stateByte, err := mc.Get(index)
+	if err != nil {
+		log.Println("Retreiving State from DB: ", err)
+		return s.RetrieveStateDB(index)
+	}
+	state := &consumerState.State{}
+	if err = proto.Unmarshal(stateByte.Value, state); err != nil {
+		log.Println("Error decoding memcached state: ", err)
+		return s.RetrieveStateDB(index)
+	}
+	log.Println("Using Cache")
+	finalState := Consumer{Index: index, RegisteredStudents: state.RegisteredStudents, MaxSize: int(state.MaxSize), CurrentSize: int(state.CurrentSize)}
+	return finalState, nil
+
+}
+
+func (s *DB) PushState(consumer Consumer) {
+	mc := memcache.New(s.Cache)
+	state := &consumerState.State{
+		MaxSize:            int32(consumer.MaxSize),
+		CurrentSize:        int32(consumer.CurrentSize),
+		RegisteredStudents: consumer.RegisteredStudents,
+	}
+	stateByte, err := proto.Marshal(state)
+	if err != nil {
+		log.Println("Error serializing state: ", err)
+		return
+	}
+	err = mc.Set(&memcache.Item{Key: consumer.Index, Value: stateByte})
+	if err != nil {
+		log.Println("Error commiting to cache: ", err)
+	}
+	return
+}
+
+func (s *DB) RetrieveStateDB(index string) (Consumer, error) {
 	retval := Consumer{}
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
@@ -65,8 +107,8 @@ func (s *DB) RetrieveState(index string) (Consumer, error) {
 		return retval, err
 	}
 
-	sql = `SELECT ARRAY_AGG(netid), "class index"
-	FROM "course registration" WHERE "class index" = $1 GROUP BY 2;`
+	sql = `SELECT ARRAY_AGG(netid), "class_index"
+	FROM "course_registrations" WHERE "class_index" = $1 GROUP BY 2;`
 
 	rows, err = db.Query(sql, index)
 	if err != nil {
@@ -110,7 +152,7 @@ func (s *DB) AddRegistration(netID string, index string) error {
 		return err
 	}
 
-	sqlStatement := `INSERT INTO "course registration" VALUES($1,$2);`
+	sqlStatement := `INSERT INTO "course_registrations" VALUES($1,$2);`
 
 	_, err = db.Exec(sqlStatement, netID, index)
 	if err != nil {
@@ -136,7 +178,7 @@ func (s *DB) RemoveRegistration(netID string, index string) error {
 		return err
 	}
 
-	sqlStatement := `DELETE FROM "course registration" WHERE "netid" = $1 AND "class index" = $2;`
+	sqlStatement := `DELETE FROM "course_registrations" WHERE "netid" = $1 AND "class_index" = $2;`
 
 	_, err = db.Exec(sqlStatement, netID, index)
 	if err != nil {
@@ -153,8 +195,17 @@ func BuildDB() (*DB, error) {
 	}
 	retval := DB{}
 	err = json.Unmarshal([]byte(dbstring), &retval)
+	cachestring, err := secret.GetTokenSecret("prod/CacheUrl")
 	if err != nil {
 		return nil, err
 	}
+	var url struct {
+		Url string `json:"url"`
+	}
+	err = json.Unmarshal([]byte(cachestring), &url)
+	if err != nil {
+		return nil, err
+	}
+	retval.Cache = url.Url
 	return &retval, nil
 }

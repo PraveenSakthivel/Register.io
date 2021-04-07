@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
-	"flag"
 	"log"
 	"os"
-	data "registerio/cv/consumer/database"
+	data "registerio/cv/consumer-lambda/database"
 	"strings"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
@@ -22,15 +24,10 @@ var waitTime int64
 var debug bool
 var db *data.DB
 
-func dprint(msg ...interface{}) {
-	if debug {
-		log.Println(msg...)
-	}
-}
-
-func setup() {
+func init() {
 	var err error
-	index = os.Getenv("INDEX")
+	index = os.Args[1]
+	log.Println("Building Database")
 	db, err = data.BuildDB()
 	if err != nil {
 		log.Fatal("ERROR Unable to build DB: ", err)
@@ -57,43 +54,16 @@ func setup() {
 
 	queueURL = urlResult.QueueUrl
 	timeout = 1
-	waitTime = 10
-	return
-}
-
-func retrieveMessages() ([]*sqs.Message, error) {
-	dprint("start")
-	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-		AttributeNames: []*string{
-			aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
-		},
-		MessageAttributeNames: []*string{
-			aws.String(sqs.QueueAttributeNameAll),
-		},
-		QueueUrl:            queueURL,
-		MaxNumberOfMessages: aws.Int64(1),
-		VisibilityTimeout:   &timeout,
-		WaitTimeSeconds:     &waitTime,
-	})
-	dprint("here")
-
-	if err != nil {
-		log.Println("Error Pulling Messages from SQS: ", err)
-		return nil, err
-	}
-
-	return (*msgResult).Messages, nil
+	waitTime = 1
 }
 
 func addStudent(netID string, spn bool) error {
 	if state.CurrentSize == state.MaxSize && !spn {
-		dprint("ADD|Class full cannot add: ", netID)
 		return nil
 	}
 
 	for _, student := range state.RegisteredStudents {
 		if student == netID {
-			dprint("ADD|Student already in class: ", netID)
 			return nil
 		}
 	}
@@ -105,7 +75,6 @@ func addStudent(netID string, spn bool) error {
 
 	state.RegisteredStudents = append(state.RegisteredStudents, netID)
 	state.CurrentSize++
-	dprint("ADD|Added Student: ", netID)
 	return nil
 }
 
@@ -122,17 +91,14 @@ func dropStudent(netID string) error {
 			(*students)[i] = (*students)[len(*students)-1]
 			state.RegisteredStudents = (*students)[:len(*students)-1]
 			state.CurrentSize--
-			dprint("DROP|Dropped Student: ", netID)
 			return nil
 		}
 	}
-	dprint("DROP|Student not in class: ", netID)
 	return nil
 }
 
-func proccessMessage(message *sqs.Message) error {
-	dprint("Received Message: ", *message.Body)
-	fields := strings.Split(*message.Body, "|")
+func proccessMessage(body string, receiptHandle *string) error {
+	fields := strings.Split(body, "|")
 	netID, action := fields[0], fields[1]
 	var err error
 	switch action {
@@ -152,7 +118,7 @@ func proccessMessage(message *sqs.Message) error {
 
 	_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
 		QueueUrl:      queueURL,
-		ReceiptHandle: message.ReceiptHandle,
+		ReceiptHandle: receiptHandle,
 	})
 	if err != nil {
 		log.Println("Error Deleting Message from SQS: ", err)
@@ -161,25 +127,17 @@ func proccessMessage(message *sqs.Message) error {
 	return err
 }
 
-func main() {
-	debugPrnt := flag.Bool("debug", false, "Debug Print all Requests")
-	flag.Parse()
-	debug = *debugPrnt
-	setup()
-
-	dprint(*queueURL)
-
-	for true {
-		messages, err := retrieveMessages()
+func HandleRequest(ctx context.Context, req events.SQSEvent) error {
+	for _, message := range req.Records {
+		err := proccessMessage(message.Body, &message.ReceiptHandle)
 		if err != nil {
-			log.Println("Error retrieving messages: ", err)
-			continue
+			return err
 		}
-		for _, message := range messages {
-			for proccessMessage(message) != nil {
-			}
-		}
-
 	}
+	db.PushState(state)
+	return nil
+}
 
+func main() {
+	lambda.Start(HandleRequest)
 }

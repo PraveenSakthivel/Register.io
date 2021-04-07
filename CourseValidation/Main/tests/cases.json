@@ -1,15 +1,11 @@
 [
     {
         "Case": "Single Signup",
-        "Token": "4aea0bc8b62eea32f0f43dcc9b8df522a25e17b05cf9cd6ae8bd7d3a5fbe386af0b1b252fd78c930d555d82520dcdceddf158fb9d16e9e7bc5a43f6e7cee1a1ddabd8f5ffd8fbc774b545a8d2f646371568f39c58b06f2c9ec60c5f074de07d2f3111efa8177d0ef3deb3a1a46452959dfa7e48501ff4ad187dc398ebb2942099e62b15719edbd8053ba4f0262f3d9949815280d3758afbefd017ef0faa63754d98e4f4081c0b26e6303833860574b8c96db01690651c791a8b6d63fe3101c81faa677eb513f37647d8aec002c4c3e5a7e15c648b5217f9ad774772abf8ba7a179b2cd696199c820d8e39d411734ec1fa6fe7778d83545fff92261878427e3ce91fa8093f8e55070756f4a54a135ac2c8a12d7bbfeabfc5c85a14837",
+        "Token": "e3e2e1f942e13ccc8e91ba42165bad54c181e43021ac9fe7a02c474b8b6bd1df2fd188a4329e126117512690abed5b37f5491fe83553b8cdeee2558e90e2d1ecc7b61bd2d95de03f6df3fb3a6dd81894232361338f865bcbc4f0cca57c29904e7e9ea0926f2b977de5815fc64272ca4463023a380baecd54365cf640bda1a66778aafa966065215fbe485e69e4f68cbfcff6dc5b0fa5e6bcea6ba5da1e5f37cb777b3e2d670f2c1eef1059612f8d7d088f201c2a63ddf48c35380b977e8bee7624d7014eac30559b35e856d3d9b32db2b8ec70dafabd526e1b0be6cd94b6ae70a0b6038c4462a24690602293c850549cdd1b0c83d4fec5272bfa7cebbe563a67e891310a1480b6d3065183adea89f41b0ee2f35c4980c7089a3bd74b",
         "Classes": [
             {
-                "Index": "02345",
-                "Operation": "add"
-            },
-            {
-                "Index": "023456",
-                "Operation": "add"
+                "Index": "14149",
+                "Operation": "drop"
             }
         ],
         "Results": {
