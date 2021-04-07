@@ -1,0 +1,4 @@
+all: proto
+
+proto:
+	protoc .
