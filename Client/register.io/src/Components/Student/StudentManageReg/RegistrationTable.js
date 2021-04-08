@@ -27,6 +27,22 @@ class RegistrationTable extends React.Component {
         this.setState({ treeValue: TreeState.create(this.props.classes) });
         this.setState({ enableRegister: this.props.enableRegister })
         this.setState({ registerTime: this.props.registerTime })
+        this.validate()
+    }
+
+
+    componentDidUpdate ( prevProps ) {
+        if(this.props.classes.length != prevProps.classes.length){
+            this.setState({treeValue: TreeState.create(this.props.classes)})
+            clearInterval(this.fetchRegistrationsCaller)
+            this.fetchRegistrationsCaller = undefined
+        }
+    }
+
+    componentWillUnmount () {
+        if(this.fetchRegistrationsCaller != undefined)
+            clearInterval(this.fetchRegistrationsCaller)
+        this.fetchRegistrationsCaller = undefined
     }
 
     render() {
@@ -140,25 +156,46 @@ class RegistrationTable extends React.Component {
                     courseList.push({val:val, reqop:'ADD'})
                 }
             }
-            CVRequest(courseList, this.courseAddCallback) 
-        }
-        else{
+            CVRequest(courseList, this.courseChangeCallback) 
         }
     }
 
-    courseAddCallback = ( serverResponse ) =>{
+    courseChangeCallback = ( serverResponse ) =>{
         console.log(serverResponse)
+        // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
+
+        // call validateLogin to get currentregistrations list, and see if classes have been added/dropped
+        this.fetchRegistrations( )
+    }
+
+    fetchRegistrationsCaller = undefined
+
+    fetchRegistrations = () => {
+        var startTime = new Date().getTime(); 
+        this.fetchRegistrationsCaller = setInterval(() => {
+            
+            
+            this.validate()
+            if(new Date().getTime() - startTime > 2001){
+                clearInterval(this.fetchRegistrationsCaller);
+                this.fetchRegistrationsCaller = undefined
+                return;
+            }
+        
+        }, 500);
+        //setTimeout(function(){ clearInterval(this.fetchRegistrationsCaller); }, 2001);
+
+    }
+
+    validate(){
         this.props.validateLogin(window.sessionStorage.getItem('token'))
     }
 
     onCourseDrop = (row) => {
         if(window.confirm('Are you sure you want to drop class \''+row.data.coursename+'\'?')){
-            let index = row.metadata.index
-            let data = this.state.treeValue.data
-            data.splice(index, 1)
-
-
-            this.handleOnChange(data)
+            let courseList = []
+            courseList.push({val:row.data.coursecode, reqop:'DROP'})
+            CVRequest(courseList, this.courseChangeCallback)
         }
     }
 

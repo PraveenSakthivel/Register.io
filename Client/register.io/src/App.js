@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 // components
 import Login from './Components/Login/Login'
@@ -28,6 +27,7 @@ class App extends Component {
   }
 
   validateLoginCallback = (serverResponse) => {
+      console.log(serverResponse)
       if(serverResponse != null && serverResponse != ''){
         this.setState({userType : serverResponse.usertype})
         if(serverResponse.usertype == 0){ // if user is a student
@@ -69,15 +69,7 @@ class App extends Component {
 
     return (
       <div class="App" >
-        <BrowserRouter>
-          <Switch>
-
-            <Route path='/'>
               {content}
-            </Route>
-
-          </Switch>
-        </BrowserRouter>
       </div>
     )
   }

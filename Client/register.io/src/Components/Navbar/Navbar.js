@@ -1,6 +1,5 @@
 import React from 'react';
 import logo from '../../Assets/logo_navbar.png'
-import { Redirect } from 'react-router-dom'
 
 class Navbar extends React.Component {
 

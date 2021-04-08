@@ -16,6 +16,11 @@ class StudentManageReg extends React.Component {
         this.updateClasses = this.updateClasses.bind(this);
     }
 
+    componentDidUpdate ( prevProps ) {
+        if(this.props.studentRegistrations != prevProps.studentRegistrations)
+            this.setState({ classes : this.registrationsFormatter() })
+    }
+
     updateClasses(e){
         this.setState({classes:e});
     }
@@ -25,11 +30,15 @@ class StudentManageReg extends React.Component {
         let rawData = this.props.studentRegistrations
 
         for(let i = 0; i < rawData.length; i++){
+            let credits
+            if(rawData[i].array[15] != null)
+                credits = rawData[i].array[15]
+            credits = 'N/A'
             let classData = {
                 coursecode : rawData[i].array[5],
                 coursenumber : rawData[i].array[2] + ':' + rawData[i].array[3] + ':' + rawData[i].array[4] + ':' + rawData[i].array[7],
                 coursename : rawData[i].array[6],
-                credits : "3.0",
+                credits : credits,
                 status : "Added!"
             }
 

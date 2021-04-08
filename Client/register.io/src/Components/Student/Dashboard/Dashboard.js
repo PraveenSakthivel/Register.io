@@ -42,7 +42,6 @@ class Dashboard extends React.Component {
         }
     }
 
-    
 
     render() {
         let groupColor = {"Watchlist":"var(--color-primary)", "Course Approved":"#F79F1F", "SPN":"#009432"}
