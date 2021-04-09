@@ -32,7 +32,6 @@ export const ValidateLogin = ( data, callback ) => {
     protoToken.setToken(data.token);
     
     client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
-        console.log(response)
         if(response.getUsertype() == 0)
             callback({ usertype: response.getUsertype(), classlist: response.getClassesList() })
         else
@@ -77,11 +76,9 @@ export const CVRequest = ( data, callback ) =>{
     var request = new RegistrationRequest();
     request.setClassesList(courses);
     request.setToken(window.sessionStorage.getItem("token").toString());
-
-    console.log(request)
     
     client.changeRegistration(request, { "grpc_service" : "cv" }, (err, response) => {
-        callback(response);
+        callback(response.getResultsMap());
     });
 
 }

@@ -10,7 +10,7 @@ import ClassHistory from '../Student/ClassHistory/ClassHistory'
 import MyAccount from '../Student/MyAccount/MyAccount'
 
 // Admin Components
-import AdminDashboard from '../Admin/Dashboard/Dashboard'
+import Analytics from '../Admin/Analytics/Analytics'
 
 import Footer from '../Footer/Footer'
 
@@ -37,7 +37,7 @@ class Content extends React.Component {
                 if(userType == 0)
                     page = <StudentDashboard />
                 else if(userType == 1)
-                    page = <AdminDashboard />
+                    page = <Analytics />
                 break;
             case("Student Account"):
                 page = <MyAccount />
@@ -46,13 +46,13 @@ class Content extends React.Component {
                 page = <StudentManageReg validateLogin={this.props.validateLogin} studentRegistrations={this.props.studentRegistrations} enableRegister = {this.props.enableRegister} registerTime = {this.props.registerTime} />
                 break;
             case("Student Course Lookup"):
-                page = <CourseLookup enableRegister = {this.props.enableRegister} registerTime = {this.props.registerTime} />
+                page = <CourseLookup enableRegister = {this.props.enableRegister} registerTime = {this.props.registerTime} studentRegistrations={this.props.studentRegistrations} />
                 break;
             case("Student Class History"):
                 page = <ClassHistory />
                 break;
-            case("Admin Dashboard"):
-                page = <h1>Admin Dashboard</h1>
+            case("Admin Account"):
+                page = <h1>Admin Account</h1>
                 break;
             case("Superuser Dashboard"):
                 page = <h1>Superuser Dashboard</h1>

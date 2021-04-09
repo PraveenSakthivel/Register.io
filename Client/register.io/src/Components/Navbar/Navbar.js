@@ -59,16 +59,8 @@ class Navbar extends React.Component {
                             <a class="navbar-item-child" >My Account</a>
                         </div>
                         <div class="navbar-item navbar-selected" id="Dashboard">
-                            <p>🏡</p>
-                            <a class="navbar-item-child">Dashboard</a>
-                        </div>
-                        <div class="navbar-item" id="Class Manager">
-                            <p>✍️</p>
-                            <a class="navbar-item-child">Class<br></br>Manager</a>
-                        </div>
-                        <div class="navbar-item" id="Analytics">
                             <p>📈</p>
-                            <a class="navbar-item-child">Analytics</a>
+                            <a class="navbar-item-child">Dashboard</a>
                         </div>
                         <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
                             <p>⬅️</p>

@@ -157,7 +157,7 @@ class CourseLookup extends React.Component {
 
                 </div>
                 <div class="courseLookup-content">
-                    <CourseTable data={ this.state.visibleClasses } enableRegister={this.props.enableRegister} />
+                    <CourseTable data={ this.state.visibleClasses } enableRegister={this.props.enableRegister} studentRegistrations={this.props.studentRegistrations} />
                 </div>
             </div>
         );
@@ -178,7 +178,7 @@ const data =
                 data: { name: 'Intro to Computer Science', courseCode: '01:198:111', credits: '4cr', openSections: 3, closedSections: 2 },
                 children: [
                     { 
-                    data: { section: 'Section 01', status: true, index: '08384', time: '(MTh 6:40-8:00pm),(W 7:00-9:00am)', location: 'Busch', instructor:'Centeno, Ana' },
+                    data: { section: 'Section 01', status: true, index: '14198', time: '(MTh 6:40-8:00pm),(W 7:00-9:00am)', location: 'Busch', instructor:'Centeno, Ana' },
                     },
                     { 
                     data: { section: 'Section 02', status: false, index: '68959', time: 'By Arrangement', location: 'Busch', instructor:'Centeno, Ana' },

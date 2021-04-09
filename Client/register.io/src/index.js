@@ -11,7 +11,7 @@ import './Components/Student/CourseLookup/CourseLookup.css'
 import './Components/Student/CourseLookup/CourseTable.css'
 import './Components/Student/ClassHistory/ClassHistory.css'
 import './Components/Student/MyAccount/MyAccount.css'
-import './Components/Admin/Dashboard/Dashboard.css'
+import './Components/Admin/Analytics/Analytics.css'
 import './Components/Footer/Footer.css'
 
 import App from './App';

@@ -16,7 +16,8 @@ class RegistrationTable extends React.Component {
         enableRegister: false,
         registerTime: '',
         childrenFontSize: '15px',
-        popupOpen: false
+        popupOpen: false,
+        registerResults:[]
       };
 
       this.onCourseDrop = this.onCourseDrop.bind(this);
@@ -65,6 +66,8 @@ class RegistrationTable extends React.Component {
         style = {fontSize:"14px", pointerEvents:"none", height:"35px", backgroundColor:"grey"}
       else
         style = {fontSize:"14px"}
+
+      // WHATS LEFT: JUST SHOW POPUP IF REGISTERRESULTS IS NOT EMPTY, THEN EMPTY REGISTERRESULTS AND THIS.RESULTMAP
 
       return (
         <TreeTable
@@ -160,12 +163,40 @@ class RegistrationTable extends React.Component {
         }
     }
 
-    courseChangeCallback = ( serverResponse ) =>{
-        console.log(serverResponse)
-        // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
+    resultCodes(i){
+        switch(i){
+            case(2):
+                return "Insufficient Prereqs"
+            case(3):
+                return "Timing Conflict"
+            case(4):
+                return "Invalid Index"
+            case(5):
+                return "Server Error"
+            case(6):
+                return "Course Queueing Error"
+        }
+    }
 
-        // call validateLogin to get currentregistrations list, and see if classes have been added/dropped
-        this.fetchRegistrations( )
+    resultMap = []
+    fetchReg = false
+
+    logMapElements(value, key, map) {
+        if(value != 1)
+            this.resultMap.push({ index: key, error: this.resultCodes(value) })
+        else
+            this.fetchReg = true
+    }
+
+    courseChangeCallback = ( serverResponse ) =>{
+        // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
+        let responseMap = serverResponse
+        responseMap.forEach(this.logMapElements.bind(this))
+        console.log(this.resultMap)
+        this.setState({ registerResults : this.resultMap })
+
+        if(this.fetchReg)
+            this.fetchRegistrations( )
     }
 
     fetchRegistrationsCaller = undefined
@@ -174,7 +205,7 @@ class RegistrationTable extends React.Component {
         var startTime = new Date().getTime(); 
         this.fetchRegistrationsCaller = setInterval(() => {
             
-            
+            this.fetchReg = false
             this.validate()
             if(new Date().getTime() - startTime > 2001){
                 clearInterval(this.fetchRegistrationsCaller);
@@ -209,9 +240,19 @@ class RegistrationTable extends React.Component {
     }
 
     renderSixthCell = (row) => {
+
+        let color
+        switch(row.data.status){
+            case('Added!'):
+                color = "darkgreen"
+                break
+            default:
+                color = "black"
+        }
+
         return (
             <div>
-                <span style={{fontWeight: "600"}}>{row.data.status}</span>
+                <span style={{fontWeight: "600", color:color}}>{row.data.status}</span>
             </div>
         );
       }

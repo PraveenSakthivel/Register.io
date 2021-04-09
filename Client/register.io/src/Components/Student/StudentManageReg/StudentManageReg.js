@@ -10,8 +10,8 @@ class StudentManageReg extends React.Component {
         super(props);
         this.state = { classes: this.registrationsFormatter(), 
                         semesters: [{ label: 'Spring 2021', value: 'Spring 2021' }],
-                        lists: [{ label: 'Schedule 📅', value: 'Schedule' }, { label: 'Watchlist 😎', value: 'Watchlist' }] 
-                    
+                        lists: [{ label: 'Schedule 📅', value: 'Schedule' }, { label: 'Watchlist 😎', value: 'Watchlist' }],
+                        numCredits:''
                     };
         this.updateClasses = this.updateClasses.bind(this);
     }
@@ -28,11 +28,14 @@ class StudentManageReg extends React.Component {
     registrationsFormatter = () => {
         let formattedData = []
         let rawData = this.props.studentRegistrations
+        let totalCredits = 0
 
         for(let i = 0; i < rawData.length; i++){
             let credits
-            if(rawData[i].array[15] != null)
+            if(rawData[i].array[15] != null){
                 credits = rawData[i].array[15]
+                totalCredits += parseFloat(credits)
+            }
             credits = 'N/A'
             let classData = {
                 coursecode : rawData[i].array[5],
@@ -44,6 +47,8 @@ class StudentManageReg extends React.Component {
 
             formattedData.push({data : classData})
         }
+
+        this.setState({numCredits : totalCredits + '.0'})
 
         return formattedData
     }
@@ -77,6 +82,7 @@ class StudentManageReg extends React.Component {
                                 onChange={() => "nothing" }
                             />
                         </div>
+                        <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%", marginTop:"25px", marginBottom:"0px"}}>Credits 💰:&nbsp;&nbsp;{this.state.numCredits}</p>
                     </div>
                     <div class="studentManageReg-registrationContent">
                         <div>

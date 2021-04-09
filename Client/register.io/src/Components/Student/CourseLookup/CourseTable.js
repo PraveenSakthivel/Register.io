@@ -11,8 +11,20 @@ class CourseTable extends React.Component {
         childrenFontSize: "14px",
         enableRegister: this.props.enableRegister,
         heavyFontWeight: "400",
-        fontWeight: 400
+        fontWeight: 400,
+        registrationsMap: this.registrationsToSet()
       };
+    }
+
+    registrationsToSet(){
+      let registrations = this.props.studentRegistrations
+      let set = new Set()
+
+      for(let i = 0; i < registrations.length; i++){
+        set.add(registrations[i].array[5])
+      }
+
+      return set
     }
 
     // deprecated, but still works haha might have to update l8r
@@ -130,7 +142,11 @@ class CourseTable extends React.Component {
         <div>
           {(row.data.name == null && this.state.enableRegister)
             ?
-              <button onClick={this.onCourseAdd(row)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
+              (this.state.registrationsMap.has(row.data.index))
+              ?
+                <button class="courseTable-addBtn" style={{pointerEvents:"none", textDecoration:"none", border:"none", fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"darkgreen"}}>Added!</button>
+              :
+                <button onClick={this.onCourseAdd(row)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
             :
               (row.data.name != null)
               ?

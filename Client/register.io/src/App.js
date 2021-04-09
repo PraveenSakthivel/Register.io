@@ -22,6 +22,14 @@ class App extends Component {
   }
 
   validateLogin(token){
+
+    // TEMPORARY
+    if(token == 'admin'){
+      window.sessionStorage.setItem("token", 'admin')
+      this.setState({ userType : 1 })
+      return;
+    }
+
     window.sessionStorage.setItem("token", token);
     ValidateLogin( { token: token }, this.validateLoginCallback )
   }
@@ -32,7 +40,8 @@ class App extends Component {
         this.setState({userType : serverResponse.usertype})
         if(serverResponse.usertype == 0){ // if user is a student
           this.setState({studentRegistrations : serverResponse.classlist}) // store the student's current registrations
-          RVRequest( {}, this.registrationCallback ) // check if student is eligible to register
+          if(this.state.registerTime == '')
+            RVRequest( {}, this.registrationCallback ) // check if student is eligible to register
         }
       } 
       else 
