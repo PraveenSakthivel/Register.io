@@ -7,6 +7,7 @@ RUN go mod download
 COPY databse/data.go database/data.go
 COPY secrets/secret.go secrets/secret.go
 COPY models/soc.go models/soc.go
+COPY modes/status.go models/status.go
 COPY pb/dbRequests.go pb/dbRequests.go
 COPY pb/dbRequests_grpc.pb.go pb/dbRequests_grpc.pb.go
 COPY pb/dbRequests.pb.go pb/dbRequests.pb.go
