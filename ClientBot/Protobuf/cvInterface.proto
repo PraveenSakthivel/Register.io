@@ -2,7 +2,7 @@ syntax="proto3";
 
 package cvInterface;
 
-option go_package = "./";
+option go_package = "./cvInterface";
 
 enum ResultClass {
     NONE = 0; //Placeholder

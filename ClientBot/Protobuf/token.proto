@@ -1,6 +1,46 @@
 syntax="proto3";
-package main;
+package Tokens;
+option go_package = "./token";
 
 message Token {
       string token = 1;
+}
+
+message Class {
+      string Location = 1;
+      string Level = 2;
+      int64 School = 3;
+      int64 Department = 4;
+      int64 ClassNumber = 5;
+      string Index = 6;
+      string Name = 7;
+      string Section = 8;
+      string MeetingLocation = 9;
+      string MeetingTimes = 10;
+      string Exam = 11;
+      repeated string Instructors = 12;
+      repeated string Codes = 13;
+      string Synopsis = 14;
+      repeated string Books = 15;
+      int64 Credits = 16;
+}
+
+message Response{
+      string Token = 1;
+      int64  UserType = 2;
+}
+
+message Registrations {
+      int64 UserType = 1;
+      repeated Class Classes = 2;
+}
+
+message Credentials{
+      string NetID = 1;
+      string Password = 2;
+}
+
+service LoginEndpoint {
+      rpc GetLoginToken(Credentials) returns (Response){}
+      rpc GetCurrentRegistrations(Token) returns (Registrations) {}
 }

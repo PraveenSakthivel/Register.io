@@ -4,6 +4,8 @@ syntax="proto3";
 
 package rvInterface;
 
+option go_package = "./rvInterface";
+
 message Student {
     string Token= 1;
 }

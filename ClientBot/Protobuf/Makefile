@@ -1,4 +1,0 @@
-all: proto
-
-proto:
-	protoc .
