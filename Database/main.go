@@ -7,7 +7,7 @@ import (
 	"net"
 	dbRequests "registerio/db/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/reflection" //remove when done testing
 	_ "github.com/lib/pq"
 	data "registerio/db/database"
 )
@@ -60,7 +60,7 @@ func main() {
 
 	reflection.Register(grpcServer)
 
-	dbRequests.RegisterDatabseWrapperServer(grpcServer, &s)
+	dbRequests.RegisterDatabaseWrapperServer(grpcServer, &s)
 
 	log.Println("gRPC server started at ", port)
 	if err := grpcServer.Serve(l); err != nil {

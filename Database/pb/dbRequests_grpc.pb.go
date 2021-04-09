@@ -14,122 +14,122 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// DatabseWrapperClient is the client API for DatabseWrapper service.
+// DatabaseWrapperClient is the client API for DatabaseWrapper service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type DatabseWrapperClient interface {
+type DatabaseWrapperClient interface {
 	RetrieveClasses(ctx context.Context, in *ReceiveClassesParams, opts ...grpc.CallOption) (*ClassesResponse, error)
 	ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error)
 }
 
-type databseWrapperClient struct {
+type databaseWrapperClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewDatabseWrapperClient(cc grpc.ClientConnInterface) DatabseWrapperClient {
-	return &databseWrapperClient{cc}
+func NewDatabaseWrapperClient(cc grpc.ClientConnInterface) DatabaseWrapperClient {
+	return &databaseWrapperClient{cc}
 }
 
-func (c *databseWrapperClient) RetrieveClasses(ctx context.Context, in *ReceiveClassesParams, opts ...grpc.CallOption) (*ClassesResponse, error) {
+func (c *databaseWrapperClient) RetrieveClasses(ctx context.Context, in *ReceiveClassesParams, opts ...grpc.CallOption) (*ClassesResponse, error) {
 	out := new(ClassesResponse)
-	err := c.cc.Invoke(ctx, "/dbRequests.DatabseWrapper/RetrieveClasses", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dbRequests.DatabaseWrapper/RetrieveClasses", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *databseWrapperClient) ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error) {
+func (c *databaseWrapperClient) ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error) {
 	out := new(AddStatusResponse)
-	err := c.cc.Invoke(ctx, "/dbRequests.DatabseWrapper/ClassAddStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dbRequests.DatabaseWrapper/ClassAddStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// DatabseWrapperServer is the server API for DatabseWrapper service.
-// All implementations must embed UnimplementedDatabseWrapperServer
+// DatabaseWrapperServer is the server API for DatabaseWrapper service.
+// All implementations must embed UnimplementedDatabaseWrapperServer
 // for forward compatibility
-type DatabseWrapperServer interface {
+type DatabaseWrapperServer interface {
 	RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error)
 	ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error)
-	mustEmbedUnimplementedDatabseWrapperServer()
+	mustEmbedUnimplementedDatabaseWrapperServer()
 }
 
-// UnimplementedDatabseWrapperServer must be embedded to have forward compatible implementations.
-type UnimplementedDatabseWrapperServer struct {
+// UnimplementedDatabaseWrapperServer must be embedded to have forward compatible implementations.
+type UnimplementedDatabaseWrapperServer struct {
 }
 
-func (UnimplementedDatabseWrapperServer) RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error) {
+func (UnimplementedDatabaseWrapperServer) RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveClasses not implemented")
 }
-func (UnimplementedDatabseWrapperServer) ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error) {
+func (UnimplementedDatabaseWrapperServer) ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClassAddStatus not implemented")
 }
-func (UnimplementedDatabseWrapperServer) mustEmbedUnimplementedDatabseWrapperServer() {}
+func (UnimplementedDatabaseWrapperServer) mustEmbedUnimplementedDatabaseWrapperServer() {}
 
-// UnsafeDatabseWrapperServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to DatabseWrapperServer will
+// UnsafeDatabaseWrapperServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DatabaseWrapperServer will
 // result in compilation errors.
-type UnsafeDatabseWrapperServer interface {
-	mustEmbedUnimplementedDatabseWrapperServer()
+type UnsafeDatabaseWrapperServer interface {
+	mustEmbedUnimplementedDatabaseWrapperServer()
 }
 
-func RegisterDatabseWrapperServer(s grpc.ServiceRegistrar, srv DatabseWrapperServer) {
-	s.RegisterService(&DatabseWrapper_ServiceDesc, srv)
+func RegisterDatabaseWrapperServer(s grpc.ServiceRegistrar, srv DatabaseWrapperServer) {
+	s.RegisterService(&DatabaseWrapper_ServiceDesc, srv)
 }
 
-func _DatabseWrapper_RetrieveClasses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DatabaseWrapper_RetrieveClasses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReceiveClassesParams)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DatabseWrapperServer).RetrieveClasses(ctx, in)
+		return srv.(DatabaseWrapperServer).RetrieveClasses(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dbRequests.DatabseWrapper/RetrieveClasses",
+		FullMethod: "/dbRequests.DatabaseWrapper/RetrieveClasses",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DatabseWrapperServer).RetrieveClasses(ctx, req.(*ReceiveClassesParams))
+		return srv.(DatabaseWrapperServer).RetrieveClasses(ctx, req.(*ReceiveClassesParams))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DatabseWrapper_ClassAddStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DatabaseWrapper_ClassAddStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ClassAddStatusParams)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DatabseWrapperServer).ClassAddStatus(ctx, in)
+		return srv.(DatabaseWrapperServer).ClassAddStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dbRequests.DatabseWrapper/ClassAddStatus",
+		FullMethod: "/dbRequests.DatabaseWrapper/ClassAddStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DatabseWrapperServer).ClassAddStatus(ctx, req.(*ClassAddStatusParams))
+		return srv.(DatabaseWrapperServer).ClassAddStatus(ctx, req.(*ClassAddStatusParams))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// DatabseWrapper_ServiceDesc is the grpc.ServiceDesc for DatabseWrapper service.
+// DatabaseWrapper_ServiceDesc is the grpc.ServiceDesc for DatabaseWrapper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var DatabseWrapper_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "dbRequests.DatabseWrapper",
-	HandlerType: (*DatabseWrapperServer)(nil),
+var DatabaseWrapper_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "dbRequests.DatabaseWrapper",
+	HandlerType: (*DatabaseWrapperServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "RetrieveClasses",
-			Handler:    _DatabseWrapper_RetrieveClasses_Handler,
+			Handler:    _DatabaseWrapper_RetrieveClasses_Handler,
 		},
 		{
 			MethodName: "ClassAddStatus",
-			Handler:    _DatabseWrapper_ClassAddStatus_Handler,
+			Handler:    _DatabaseWrapper_ClassAddStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

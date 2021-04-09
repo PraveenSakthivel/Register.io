@@ -2,7 +2,7 @@ syntax = "proto3";
 //protoc --go_out=. --go-grpc_out=. dbRequests.proto
 package dbRequests;
 
-service DatabseWrapper {
+service DatabaseWrapper {
     rpc RetrieveClasses(ReceiveClassesParams) returns (ClassesResponse) {}
     rpc ClassAddStatus(ClassAddStatusParams) returns (AddStatusResponse) {}
 }
