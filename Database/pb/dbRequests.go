@@ -1,17 +1,32 @@
 package dbRequests
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
 	"golang.org/x/net/context"
 	"registerio/db/models"
 	"log"
 	data "registerio/db/database"
+	"github.com/dgrijalva/jwt-go"
 	"strings"
+	"errors"
+	"fmt"
+	"strconv"
 )
 
 type Server struct {
 	Db *data.DB
-	UnimplementedDatabseWrapperServer 
+	UnimplementedDatabaseWrapperServer 
 	Debug bool
+	TokenSecret string
+}
+
+type userClaims struct {
+	NetID        string           `json:"name"`
+	ClassHistory map[string]int32 `json:"classHistory"`
+	SpecialCases map[string]bool  `json:"specialCases"`
+	jwt.StandardClaims
 }
 
 func dprint(s *Server, msg ...interface{}) {
@@ -33,6 +48,36 @@ func (s *Server) RetrieveClasses(ctx context.Context, input *ReceiveClassesParam
 		return nil, err
 	}
 	dprint(s, "OK: Successfully serialized all classes")
+	return &resp, nil
+}
+
+func (s *Server) ClassAddStatus(ctx context.Context, input *ClassAddStatusParams) (*AddStatusResponse, error) {
+	dprint(s, "REQUEST: Checking statuses of classes")
+	netid, err := s.parseJWT(input.Token)
+	if err != nil {
+		return nil, err
+	}
+	dprint(s, "OK: Successfully decoded netid")
+	var resp AddStatusResponse
+	resp.Statuses = make(map[string]AddStatus)	
+	for _, index := range input.Index {
+		status, err := models.CheckStatus(s.Db, netid, index)
+		if err != nil {
+			return nil, err
+		}
+		switch status {
+		case 0:
+			resp.Statuses[index] = AddStatus_PENDING
+		case 1:
+			resp.Statuses[index] = AddStatus_ADDED
+		case 2:
+			resp.Statuses[index] = AddStatus_FAILED
+		default:
+			return nil, errors.New("Could not properly get status for index: "+index+" and netid: "+netid)
+		}
+	}
+	
+	dprint(s, "OK: Successfully serialized all statuses")
 	return &resp, nil
 }
 
@@ -89,4 +134,68 @@ func ConvertClasses(classesMap map[string][]models.Soc) ([]*Class, error) {
 	}
 
 	return convertedList, nil
+}
+
+func (s *Server) Decrypt(encryptedString string) (string, error) {
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
+	enc, _ := hex.DecodeString(encryptedString)
+
+	block, err := aes.NewCipher([]byte(s.TokenSecret[0:32]))
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	nonceSize := aesGCM.NonceSize()
+
+	if len(enc) < nonceSize {
+		return "", err
+	}
+
+	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
+
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	return fmt.Sprintf("%s", plaintext), nil
+}
+
+func (s *Server)parseJWT(encodedToken string) (string, error) {
+	decodedToken, err := s.Decrypt(encodedToken)
+	if err != nil {
+		return "", err
+	}
+	token, err := jwt.ParseWithClaims(decodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
+			return "", errors.New("Invalid token")
+		}
+		return []byte(s.TokenSecret), nil
+	})
+
+	if err != nil {
+		log.Println("Error Parsing JWT: ", err)
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(*userClaims); ok {
+		specCases := make(map[int32]bool)
+		for key, val := range claims.SpecialCases {
+			intkey, err := strconv.ParseInt(key, 10, 32)
+			if err != nil {
+				log.Println("Error Parsing Cases: ", err)
+				continue
+			}
+			specCases[int32(intkey)] = val
+		}
+		return claims.NetID, nil
+	}
+	return "", errors.New("Unable to Parse JWT")
 }
