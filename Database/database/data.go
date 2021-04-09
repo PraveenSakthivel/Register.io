@@ -26,3 +26,7 @@ func BuildDB() (*DB, error) {
 	}
 	return &retval, nil
 }
+
+func GetTokenSecret() (string, error) {
+	return secret.GetTokenSecret("user/JWTEncryption")
+}

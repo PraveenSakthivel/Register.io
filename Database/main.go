@@ -14,6 +14,7 @@ import (
 
 type Env struct {
 	db *data.DB
+	tokenSecret string
 }
 
 func setup() (*Env){
@@ -24,7 +25,13 @@ func setup() (*Env){
 		return nil
 	}
 
-	return &Env{db: db}
+	tokenSecret, err := data.GetTokenSecret()
+	if err != nil {
+		log.Fatal("ERROR Unable to get token secret: ", err)
+		return nil
+	}
+
+	return &Env{db: db, tokenSecret: tokenSecret}
 	
 }
 
@@ -54,7 +61,7 @@ func main() {
 		log.Fatal("Error: Failed to listen")
 	}
 
-	s := dbRequests.Server{Db:env.db, Debug:debug}
+	s := dbRequests.Server{Db:env.db, Debug:debug, TokenSecret: env.tokenSecret}
 
 	grpcServer := grpc.NewServer()
 
