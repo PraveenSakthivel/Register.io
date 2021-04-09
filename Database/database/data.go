@@ -13,6 +13,10 @@ type DB struct {
 	Dbname   string `json:"dbname"`
 }
 
+type token struct {
+	TokenSecret string
+}
+
 
 func BuildDB() (*DB, error) {
 	dbstring, err := secret.GetTokenSecret("prod/DB")
@@ -27,6 +31,12 @@ func BuildDB() (*DB, error) {
 	return &retval, nil
 }
 
-func GetTokenSecret() (string, error) {
-	return secret.GetTokenSecret("user/JWTEncryption")
+func GetTokenSecret() (token, error) {
+	tokenSecret, err := secret.GetTokenSecret("user/JWTEncryption")
+	if err != nil {
+		return token{}, err
+	}
+	var Token token
+	json.Unmarshal([]byte(tokenSecret), &Token)
+	return Token, nil
 }
