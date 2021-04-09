@@ -1,8 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"flag"
 	"log"
 	"os"
@@ -11,41 +9,35 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	_ "github.com/lib/pq"
-)
-
-
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
+	data "registerio/db/database"
 )
 
 type Env struct {
-	db *sql.DB
+	db *data.DB
 }
 
+func setup() (*Env){
+	var err error
+	db, err := data.BuildDB()
+	if err != nil {
+		log.Fatal("ERROR Unable to build DB: ", err)
+		return nil
+	}
 
+	return &Env{db: db}
+	
+}
 
 func main() {
 	debugPrnt := flag.Bool("debug", false, "Debug Print all Requests")
 	flag.Parse()
 	var debug = *debugPrnt
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	  "password=%s dbname=%s sslmode=disable",
-	  host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		log.Fatal("Unable to open connection to Postgres DB: ", err)
-		os.Exit(3)
+	
+	env := setup()
+
+	if env == nil {
+		return 
 	}
-
-	env := &Env{db: db}
-
-	log.Println("Successfully connected to Postgres Database")
-	log.Printf("Connection Details: host=%s port=%d user=%s "+
-	"dbname=%s sslmode=disable\n", host, port, user, dbname)
 
 	var port string
 	var ok bool

@@ -3,7 +3,9 @@ package models
 import (
 	"github.com/lib/pq"
 	"database/sql"
+	"log"
 	"fmt"
+	data "registerio/db/database"
 )
 
 type Soc struct {
@@ -25,19 +27,39 @@ type Soc struct {
 	Books           pq.StringArray
 }
 
-func RetrieveAllClasses(db *sql.DB) ([]Soc, error) {
+func RetrieveAllClasses(s *data.DB) (map[string][]Soc, error) {
+	
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
 
-	var query = "SELECT ca.\"max size\"-ca.\"current size\" as \"Available Slots\",s.location, s.level, s.school, s.department, s.class_number, s.index, s.name, s.section, s.meeting_location, s.meeting_times, s.exam, s.instructors, s.codes, s.synopsis, s.books"+
-	" FROM public.socs s LEFT OUTER JOIN public.\"course availability\" ca ON ca.index = s.index;"
+	var query = "SELECT cx.slots, s.location, s.level, s.school, s.department, s.\"class number\", "+
+	"s.index, s.name, s.section, s.\"meeting location\", s.\"meeting times\", s.exam, s.instructors, s.codes, "+
+	"s.synopsis, s.books "+ 
+	"FROM public.soc s LEFT OUTER JOIN ("+
+	"SELECT ca.index, (ca.\"max size\" - COALESCE(crr.amt_filled,0)) as \"slots\" FROM \"course availability\" ca LEFT OUTER JOIN (SELECT cr.class_index, COUNT(cr.netid) as \"amt_filled\" from course_registrations cr group by class_index) crr "+
+	"ON ca.index = crr.class_index) cx "+
+	"ON s.index = cx.index;"
 
 	rows, err := db.Query(query)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	var classes []Soc
+	classes := make(map[string][]Soc)
 	for rows.Next() {
 		var class Soc
 		if err := rows.Scan(&class.Spots, &class.Location, &class.Level, &class.School, &class.Department, &class.ClassNumber, 
@@ -45,8 +67,8 @@ func RetrieveAllClasses(db *sql.DB) ([]Soc, error) {
 			&class.Exam, &class.Instructors, &class.Codes, &class.Synopsis, &class.Books); err != nil {
 			return nil, err
 		}
-		classes = append(classes, class)
-
+		coursenumber := fmt.Sprintf("%02d:%03d:%03d", class.School, class.Department, class.ClassNumber)
+		classes[coursenumber] = append(classes[coursenumber], class)
 	}
 
 	if err := rows.Err(); err != nil {
