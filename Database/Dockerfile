@@ -4,10 +4,10 @@ WORKDIR /src/registerio/db
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-COPY databse/data.go database/data.go
+COPY database/data.go database/data.go
 COPY secrets/secret.go secrets/secret.go
 COPY models/soc.go models/soc.go
-COPY modes/status.go models/status.go
+COPY models/status.go models/status.go
 COPY pb/dbRequests.go pb/dbRequests.go
 COPY pb/dbRequests_grpc.pb.go pb/dbRequests_grpc.pb.go
 COPY pb/dbRequests.pb.go pb/dbRequests.pb.go
