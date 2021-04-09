@@ -1,9 +1,25 @@
 syntax = "proto3";
-
+//protoc --go_out=. --go-grpc_out=. dbRequests.proto
 package dbRequests;
 
 service DatabseWrapper {
     rpc RetrieveClasses(ReceiveClassesParams) returns (ClassesResponse) {}
+    rpc ClassAddStatus(ClassAddStatusParams) returns (AddStatusResponse) {}
+}
+
+enum AddStatus {
+    PENDING = 0; // class add is still pending (not in db, class isn't full)
+    ADDED = 1; // able to add class (in db)
+    FAILED = 2; // unable to add class (not in db, class is full)
+}
+
+message ClassAddStatusParams {
+    string token=1;
+    repeated string index=2;
+}
+
+message AddStatusResponse {
+    map<string, AddStatus> statuses=1;
 }
 
 message ReceiveClassesParams {}
@@ -12,20 +28,28 @@ message ClassesResponse {
     repeated Class classes=1;
 }
 message Class {
-    string location=1;
-    string level=2;
-    int32 school=3;
-    int32 department=4;
-    int32 classNum=5;
-    string index=6;
-    string name=7;
-    string section = 8;
-    string meeting_location=9;
-    string meeting_times=10;
-    string exam=11;
-    repeated string instructors=12;
-    repeated string codes=13;
-    string synopsis=14;
-    repeated string books=15;
-    bool available=16;
+    string level=1;
+    int32 school=2;
+    int32 department=3;
+    int32 classNum=4;
+    string name=5;
+    repeated string codes=6;
+    string synopsis=7;
+    repeated string books=8;
+    repeated Section sections=9;
+}
+
+message Section {
+    string index=1;
+    string section=2;
+    repeated Meeting meetings=3;
+    repeated string instructors=4;
+    bool available=5;
+    string exam=6;
+}
+
+message Meeting {
+    string meeting_time=1;
+    string meeting_location=2;
+    string campus=3;
 }

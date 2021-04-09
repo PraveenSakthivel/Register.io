@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DatabseWrapperClient interface {
 	RetrieveClasses(ctx context.Context, in *ReceiveClassesParams, opts ...grpc.CallOption) (*ClassesResponse, error)
+	ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error)
 }
 
 type databseWrapperClient struct {
@@ -38,11 +39,21 @@ func (c *databseWrapperClient) RetrieveClasses(ctx context.Context, in *ReceiveC
 	return out, nil
 }
 
+func (c *databseWrapperClient) ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error) {
+	out := new(AddStatusResponse)
+	err := c.cc.Invoke(ctx, "/dbRequests.DatabseWrapper/ClassAddStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatabseWrapperServer is the server API for DatabseWrapper service.
 // All implementations must embed UnimplementedDatabseWrapperServer
 // for forward compatibility
 type DatabseWrapperServer interface {
 	RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error)
+	ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error)
 	mustEmbedUnimplementedDatabseWrapperServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedDatabseWrapperServer struct {
 
 func (UnimplementedDatabseWrapperServer) RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetrieveClasses not implemented")
+}
+func (UnimplementedDatabseWrapperServer) ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClassAddStatus not implemented")
 }
 func (UnimplementedDatabseWrapperServer) mustEmbedUnimplementedDatabseWrapperServer() {}
 
@@ -84,6 +98,24 @@ func _DatabseWrapper_RetrieveClasses_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DatabseWrapper_ClassAddStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClassAddStatusParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatabseWrapperServer).ClassAddStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dbRequests.DatabseWrapper/ClassAddStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatabseWrapperServer).ClassAddStatus(ctx, req.(*ClassAddStatusParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DatabseWrapper_ServiceDesc is the grpc.ServiceDesc for DatabseWrapper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -95,7 +127,11 @@ var DatabseWrapper_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RetrieveClasses",
 			Handler:    _DatabseWrapper_RetrieveClasses_Handler,
 		},
+		{
+			MethodName: "ClassAddStatus",
+			Handler:    _DatabseWrapper_ClassAddStatus_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pb/dbRequests.proto",
+	Metadata: "dbRequests.proto",
 }
