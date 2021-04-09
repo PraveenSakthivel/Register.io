@@ -53,11 +53,12 @@ func (s *Server) RetrieveClasses(ctx context.Context, input *ReceiveClassesParam
 
 func (s *Server) ClassAddStatus(ctx context.Context, input *ClassAddStatusParams) (*AddStatusResponse, error) {
 	dprint(s, "REQUEST: Checking statuses of classes")
+	log.Println("Secret: "+ s.TokenSecret)
 	netid, err := s.parseJWT(input.Token)
 	if err != nil {
 		return nil, err
 	}
-	dprint(s, "OK: Successfully decoded netid")
+	dprint(s, "OK: Successfully decoded netid: ", netid)
 	var resp AddStatusResponse
 	resp.Statuses = make(map[string]AddStatus)	
 	for _, index := range input.Index {
