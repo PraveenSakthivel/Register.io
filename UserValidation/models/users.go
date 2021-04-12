@@ -49,12 +49,12 @@ type Soc struct {
 	Level           string
 	School          int
 	Department      int
-	ClassNumber     int
+	ClassNumber     int `gorm:"column:class number"`
 	Index           string
 	Name            string
 	Section         string
-	MeetingLocation string
-	MeetingTimes    string
+	MeetingLocation string `gorm:"column:meeting location"`
+	MeetingTimes    string `gorm:"column:meeting times"`
 	Exam            string
 	Instructors     pq.StringArray `gorm:"type:character varying[]"`
 	Codes           pq.StringArray `gorm:"type:character varying[]"`
