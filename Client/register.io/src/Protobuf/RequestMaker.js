@@ -30,6 +30,8 @@ export const ValidateLogin = ( data, callback ) => {
 
     let protoToken = new Token();
     protoToken.setToken(data.token);
+
+    //DBRetrieveCourses({}, {})
     
     client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
         if(response.getUsertype() == 0)
@@ -106,3 +108,20 @@ export const RVRequest = ( data, callback ) =>{
 
 /* ----------------------------------------------------------------------------------------- */
 
+// DATABASE REQUESTS Stuff
+const { ReceiveClassesParams, ClassAddStatusParams } = require('./Database/dbRequests_pb.js')
+const { DatabaseWrapperClient } = require('./Database/dbRequests_grpc_web_pb.js')
+
+// data: {} (empty)
+// response: [ { Class }, { Class }, {..} ]
+export const DBRetrieveCourses = ( data, callback ) =>{
+    var client = new DatabaseWrapperClient(endpoint)
+
+    var request = new ReceiveClassesParams();
+    
+    console.log("make request")
+    client.retrieveClasses(request, { "grpc_service" : "db" }, (err, response) => {
+        console.log(err)
+        console.log(response)
+    });
+}
