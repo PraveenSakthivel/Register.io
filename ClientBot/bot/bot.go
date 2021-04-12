@@ -2,26 +2,29 @@ package bot
 
 import (
 	"context"
-	"credentials"
+	"crypto/tls"
 	"crypto/x509"
 	"database/sql"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	cvInterface "registerio/clientBot/protobuf/cvInterface"
+	db "registerio/clientBot/protobuf/dbRequests"
 	rvInterface "registerio/clientBot/protobuf/rvInterface"
 	login "registerio/clientBot/protobuf/token"
 	"time"
 
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-var tls credentials.TransportCredentials
+var sec credentials.TransportCredentials
 
 //DB Info
 const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
+	host     = "prod-1-cluster.cluster-csz2smpfztf7.us-east-1.rds.amazonaws.com"
 	port     = 5432
 	user     = "registerio"
 	password = "registera"
@@ -34,7 +37,7 @@ func init() {
 		InsecureSkipVerify: false,
 		RootCAs:            certPool,
 	}
-	tls = credentials.NewTLS(config)
+	sec = credentials.NewTLS(config)
 }
 
 func loginRoutine(netid string, password string) (string, error) {
@@ -50,7 +53,7 @@ func loginRoutine(netid string, password string) (string, error) {
 		return "", err
 	}
 	//Login, get current registration
-	conn, err := grpc.Dial("login.registerio.co:8080", grpc.WithTransportCredentials(tls))
+	conn, err := grpc.Dial("login.registerio.co:8080", grpc.WithTransportCredentials(sec))
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +76,7 @@ func loginRoutine(netid string, password string) (string, error) {
 }
 
 func rvRoutine(token string) error {
-	conn, err := grpc.Dial("rv.registerio.co:8080", grpc.WithTransportCredentials(tls))
+	conn, err := grpc.Dial("rv.registerio.co:8080", grpc.WithTransportCredentials(sec))
 	if err != nil {
 		return err
 	}
@@ -121,8 +124,9 @@ func getClasses() ([]string, error) {
 }
 
 func cvRoutine(token string, ops []*cvInterface.ClassOperations) error {
-	conn, err := grpc.Dial("cv.registerio.co:8080", grpc.WithTransportCredentials(tls))
+	conn, err := grpc.Dial("cv.registerio.co:8080", grpc.WithTransportCredentials(sec))
 	if err != nil {
+		log.Println("ERROR: Unable to connect")
 		return err
 	}
 
@@ -133,19 +137,38 @@ func cvRoutine(token string, ops []*cvInterface.ClassOperations) error {
 	return err
 }
 
-func runBot(netid string, password string) error {
-	token, err := loginRoutine(netid, password)
+func dbRoutine(token string, classes []string) error {
+	req := db.ClassAddStatusParams{Token: token, Index: classes}
+	conn, err := grpc.Dial("database.registerio.co:8080", grpc.WithTransportCredentials(sec))
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
+	server := db.NewDatabaseWrapperClient(conn)
+	_, err = server.ClassAddStatus(context.Background(), &req)
+
+	return err
+
+}
+
+func RunBot(netid string, password string, out chan error) {
+	token, err := loginRoutine(netid, password)
+	if err != nil {
+		log.Println("Login")
+		out <- err
+		return
+	}
 	err = rvRoutine(token)
 	if err != nil {
-		return err
+		log.Println("RV")
+		out <- err
+		return
 	}
 
 	classes, err := getClasses()
 	if err != nil {
-		return err
+		out <- err
+		return
 	}
 
 	var addOps []*cvInterface.ClassOperations
@@ -156,10 +179,37 @@ func runBot(netid string, password string) error {
 		dropOps = append(dropOps, &cvInterface.ClassOperations{Index: class, Op: cvInterface.ReqOp_DROP})
 	}
 
+	max := 42
+	min := 20
 	for i := 1; i <= 5; i++ {
-		cvRoutine(token, addOps)
-		time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
-		cvRoutine(token, dropOps)
+		err = cvRoutine(token, addOps)
+		if err != nil {
+			log.Println("CV-ADD: ", err)
+			out <- err
+			return
+		}
+		time.Sleep(time.Second)
+		err = dbRoutine(token, classes)
+		if err != nil {
+			log.Println("DB")
+			out <- err
+			return
+		}
+		time.Sleep(time.Duration(rand.Intn(max-min)+min) * time.Second)
+		err = cvRoutine(token, dropOps)
+		if err != nil {
+			log.Println("DROP")
+			out <- err
+			return
+		}
+		time.Sleep(time.Duration(rand.Intn(max-min)+min) * time.Second)
 	}
-	return nil
+	err = cvRoutine(token, addOps)
+	if err != nil {
+		log.Println("CV-ADD")
+		out <- err
+		return
+	}
+	out <- nil
+	return
 }

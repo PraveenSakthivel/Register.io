@@ -276,10 +276,8 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 	var response cvInterface.RegistrationResponse
 	response.Results = make(map[string]cvInterface.ResultClass)
 	classes := req.Classes
-	for _, class := range classes {
-		response.Results[class.Index] = cvInterface.ResultClass_ERROR
-		indices = append(indices, class.Index)
-	}
+	c := make(chan classResult)
+	classReqsSent := 0
 
 	student, err := s.parseJWT(req.Token)
 	dprint("Received Request for User: ", student)
@@ -287,29 +285,38 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 		return &response, err
 	}
 
-	currentSched, err := s.getCurrentSchedule(student.netID)
-	if err != nil {
-		return &response, err
-	}
-
-	preResult, err := prereqInterface.CheckPrereqs(student.classHistory, indices, student.cases)
-	if err != nil {
-		log.Panic("ERROR Timed out trying to connect to prereq endpoint")
-		return &response, err
-	}
-	dprint("Checking Prereqs")
-	eligibleClasses := prereqInterface.EvalPrereqResults(preResult, &results, req.Classes, debug)
-	c := make(chan classResult)
-
-	classReqsSent := 0
-
-	for _, eligibleClass := range eligibleClasses {
-		eligible, err := s.checkSchedandSend(eligibleClass, currentSched, student.netID, &c)
-		//Request response defaults to error so no need to update
-		if err == nil && !eligible {
-			response.Results[eligibleClass.Index] = cvInterface.ResultClass_TIME
-		} else if err == nil && eligible {
+	drop := false
+	for _, class := range classes {
+		if class.Op == cvInterface.ReqOp_DROP {
+			drop = true
 			classReqsSent++
+			go s.sendRegRequest(student.netID, class, c)
+		}
+		response.Results[class.Index] = cvInterface.ResultClass_ERROR
+		indices = append(indices, class.Index)
+	}
+
+	if !drop {
+		currentSched, err := s.getCurrentSchedule(student.netID)
+		if err != nil {
+			return &response, err
+		}
+
+		preResult, err := prereqInterface.CheckPrereqs(student.classHistory, indices, student.cases)
+		if err != nil {
+			return &response, err
+		}
+		dprint("Checking Prereqs")
+		eligibleClasses := prereqInterface.EvalPrereqResults(preResult, &results, req.Classes, debug)
+
+		for _, eligibleClass := range eligibleClasses {
+			eligible, err := s.checkSchedandSend(eligibleClass, currentSched, student.netID, &c)
+			//Request response defaults to error so no need to update
+			if err == nil && !eligible {
+				response.Results[eligibleClass.Index] = cvInterface.ResultClass_TIME
+			} else if err == nil && eligible {
+				classReqsSent++
+			}
 		}
 	}
 

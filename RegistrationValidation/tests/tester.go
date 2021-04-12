@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +13,7 @@ import (
 	"strings"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func buildCases() map[string]bool {
@@ -35,12 +38,12 @@ func main() {
 	fmt.Printf("Running %d Cases\n-------------------\n", len(cases))
 	casesPassed := 0
 	var conn *grpc.ClientConn
-	//certPool, err := x509.SystemCertPool()
-	//config := &tls.Config{
-	//	InsecureSkipVerify: false,
-	//		RootCAs:            certPool,
-	//	}
-	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure()) //grpc.WithTransportCredentials(credentials.NewTLS(config)))
+	certPool, err := x509.SystemCertPool()
+	config := &tls.Config{
+		InsecureSkipVerify: false,
+		RootCAs:            certPool,
+	}
+	conn, err = grpc.Dial("rv.registerio.co:8080", grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	if err != nil {
 		fmt.Printf("ERROR: Could not connect to server ", err)
 	}

@@ -31,16 +31,18 @@ func CheckPrereqs(classHistory map[string]int32, indices []string, cases map[int
 		conn, err = grpc.Dial(prereqEndpoint, grpc.WithTransportCredentials(credentials.NewTLS(config)))
 		defer conn.Close()
 		if err != nil {
-			log.Panic("ERROR: Unable to connect to Prereq Endpoint: ", err)
+			log.Println("ERROR: Unable to connect to Prereq Endpoint: ", err)
+			if time.Now().Sub(start).Milliseconds() > 1000 {
+				log.Println("ERROR: Prereq Timeout")
+				return nil, errors.New("Timeout")
+			}
 			continue
 		}
 		server := NewPrereqValidationClient(conn)
-		ctx, _ := context.WithTimeout(context.Background(), 200*time.Millisecond)
-		preResult, err = server.CheckPrereqs(ctx, &prereq)
+		preResult, err = server.CheckPrereqs(context.Background(), &prereq)
 		if err != nil {
-			log.Panic("ERROR: Unable to connect to Prereq Endpoint: ", err)
-		} else if time.Now().Sub(start).Milliseconds() > 1000 {
-			return nil, errors.New("Timeout")
+			log.Println("ERROR: Error from Prereq Endpoint: ", err)
+			return nil, err
 		}
 	}
 	return preResult, nil
