@@ -1,0 +1,25 @@
+syntax="proto3";
+package Analytics;
+option go_package = ".;Analytics";
+
+message Empty{}
+
+message Location{
+    map<string, int64> Data = 1;
+}
+
+// message Time {
+//     map<string, Location> Time = 1;
+// }
+
+message DayofWeek {
+    map<string, Location> Times = 1;
+}
+
+message Heatmap{
+    map<string, DayofWeek> Days = 1;
+}
+
+service AnalyticsEndpoint {
+    rpc GetHeatmap(Empty) returns (Heatmap){}
+}
