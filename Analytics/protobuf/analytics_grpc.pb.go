@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyticsEndpointClient interface {
 	GetHeatmap(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Heatmap, error)
+	GetBargraph(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Location, error)
 }
 
 type analyticsEndpointClient struct {
@@ -38,11 +39,21 @@ func (c *analyticsEndpointClient) GetHeatmap(ctx context.Context, in *Empty, opt
 	return out, nil
 }
 
+func (c *analyticsEndpointClient) GetBargraph(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Location, error) {
+	out := new(Location)
+	err := c.cc.Invoke(ctx, "/Analytics.AnalyticsEndpoint/GetBargraph", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyticsEndpointServer is the server API for AnalyticsEndpoint service.
 // All implementations must embed UnimplementedAnalyticsEndpointServer
 // for forward compatibility
 type AnalyticsEndpointServer interface {
 	GetHeatmap(context.Context, *Empty) (*Heatmap, error)
+	GetBargraph(context.Context, *Empty) (*Location, error)
 	mustEmbedUnimplementedAnalyticsEndpointServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedAnalyticsEndpointServer struct {
 
 func (UnimplementedAnalyticsEndpointServer) GetHeatmap(context.Context, *Empty) (*Heatmap, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHeatmap not implemented")
+}
+func (UnimplementedAnalyticsEndpointServer) GetBargraph(context.Context, *Empty) (*Location, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBargraph not implemented")
 }
 func (UnimplementedAnalyticsEndpointServer) mustEmbedUnimplementedAnalyticsEndpointServer() {}
 
@@ -84,6 +98,24 @@ func _AnalyticsEndpoint_GetHeatmap_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnalyticsEndpoint_GetBargraph_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsEndpointServer).GetBargraph(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Analytics.AnalyticsEndpoint/GetBargraph",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsEndpointServer).GetBargraph(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AnalyticsEndpoint_ServiceDesc is the grpc.ServiceDesc for AnalyticsEndpoint service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var AnalyticsEndpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetHeatmap",
 			Handler:    _AnalyticsEndpoint_GetHeatmap_Handler,
+		},
+		{
+			MethodName: "GetBargraph",
+			Handler:    _AnalyticsEndpoint_GetBargraph_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

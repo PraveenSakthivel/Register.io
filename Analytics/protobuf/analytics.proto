@@ -22,4 +22,5 @@ message Heatmap{
 
 service AnalyticsEndpoint {
     rpc GetHeatmap(Empty) returns (Heatmap){}
+    rpc GetBargraph(Empty) returns (Location){}
 }

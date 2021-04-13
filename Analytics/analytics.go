@@ -159,6 +159,36 @@ func (s *Server) GetHeatmap(ctx context.Context, in *Analytics.Empty) (*Analytic
 	return &Analytics.Heatmap{Days: result}, nil
 }
 
+// GetBargraph ...
+func (s *Server) GetBargraph(ctx context.Context, in *Analytics.Empty) (*Analytics.Location, error) {
+	result := make(map[string]int64)
+	registrations := []models.CourseRegistration{}
+	models.DB.Find(&registrations)
+	for _, reg := range registrations {
+		socEntry := models.Soc{}
+		models.DB.Where("index = ?", reg.ClassIndex).First(&socEntry)
+		if socEntry.MeetingTimes == "By Arrangement" || socEntry.MeetingTimes == "" {
+			result["By Arrangement"]++
+		} else {
+			times := strings.Split(socEntry.MeetingTimes, "|")
+			for index := 0; index < len(times); {
+				time := times[index]
+				timestring := "By Arrangement"
+				if time != "By Arrangement" {
+					if strings.Index(time, "-") == -1 {
+						timestring = time[1:]
+					} else {
+						timestring = time[1:strings.Index(time, "-")]
+					}
+					result[timestring]++
+				}
+				index++
+			}
+		}
+	}
+	return &Analytics.Location{Data: result}, nil
+}
+
 func main() {
 	debugPrnt := flag.Bool("debug", false, "Debug Print all Requests")
 	flag.Parse()
