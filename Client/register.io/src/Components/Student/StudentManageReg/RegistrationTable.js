@@ -76,13 +76,13 @@ class RegistrationTable extends React.Component {
                     <Popup open={true} modal onClose={() => this.handleClose()} overlayStyle={{backgroundColor:"#00000055"}} >
                         <div class="registrationTable-popup" style={{height:"fit-content"}}>
                             <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
-                                <h5>Registration Errors ✋</h5>
+                                <h5>Registration Issues ✋</h5>
                                 <hr style={{marginRight:"7.5%"}}></hr>
                             </div>
 
                             {this.state.registerResults.map(i => <div style={{display:"flex",  marginRight:"7.5%"}}><p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}><b>Index: </b>{i.index}</p><p style={{textAlign:"right", flex:"1"}}><b>Issue: </b>{i.error}</p></div>)}
                             
-                            <hr style={{marginRight:"7.5%", marginBottom:"5%"}}></hr>
+                            <hr style={{marginRight:"7.5%", marginBottom:"7.5%"}}></hr>
                         </div>
                     </Popup>
                 :
@@ -203,9 +203,9 @@ class RegistrationTable extends React.Component {
             case(5):
                 return "Invalid Index"
             case(6):
-                return "Server Error"
+                return "Server Error (0)"
             case(7):
-                return "Course Queueing Error"
+                return "Server Error (1)"
         }
     }
 

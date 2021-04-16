@@ -53,10 +53,11 @@ class Dashboard extends React.Component {
                     <hr style={{color:"grey", marginRight:"15%", marginBottom:"0"}}></hr>
                 </div>
                 <div class="dashboard-content">
+                    {/*
                     <div class="dashboard-notifs">
                         <h5 style={{fontSize:"18px", paddingLeft:"1%", paddingTop:"max(.5%, 5px)"}}>Notifications&nbsp;&nbsp;🔔</h5>
                         <div class="dashboard-notifs_sidescroll" style={{paddingTop:"5px",marginTop:"max(1.5%, 15px)", marginLeft:"1%"}}>
-                            <div class="dashboard-notifs_cover" style={{position:"absolute", display:"-webkit-box", width:"83.5%", height:"inherit"}}>
+                            <div class="dashboard-notifs_cover" style={{position:"absolute", display:"-webkit-box", width:"84.5%", height:"inherit"}}>
                             </div>
                             {this.state.notifications.map(n => (
                                     <div id={n.id} style={{height:"75px", width:"250px", border:"1px solid lightgray", borderRadius:"4px", marginRight:"1.5%", borderLeft:"4px solid "+groupColor[n.group], padding:"10px", paddingTop:"7.5px"}}>
@@ -71,8 +72,9 @@ class Dashboard extends React.Component {
 
                         </div>
                     </div>
+                    */}
                     <div class="dashboard-schedule" style={{marginBottom:"100px"}}>
-                        <h5 style={{fontSize:"18px", paddingLeft:"1%", paddingTop:"max(1%, 10px)"}}>My Schedule&nbsp;&nbsp;📅</h5>
+                        <h5 style={{fontSize:"18px", paddingLeft:"1%"}}>My Schedule&nbsp;&nbsp;📅</h5>
                         <div style={{display:"flex", marginTop:"20px", marginBottom:"1%"}}>
                             <div style={{paddingLeft:"1%", paddingRight:"15px", width:"fit-content"}}>
                                 <p title="Semester" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Semester 📘&nbsp;</p>

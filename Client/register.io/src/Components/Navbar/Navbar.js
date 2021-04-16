@@ -31,10 +31,10 @@ class Navbar extends React.Component {
         switch(userType) {
           case 0:
             return  <div><img onDoubleClick={this.inconspicious} class="navbar-logo" src={logo}></img>
-                        <div class="navbar-item" id="Student Account">
+                        {/*<div class="navbar-item" id="Student Account">
                             <p>🧑</p>
                             <a class="navbar-item-child" >My Account</a>
-                        </div>
+                        </div>*/}
                         <div class="navbar-item navbar-selected" id="Dashboard">
                             <p>🏡</p>
                             <a class="navbar-item-child">Dashboard</a>
