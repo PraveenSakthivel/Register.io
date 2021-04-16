@@ -1,0 +1,17 @@
+syntax="proto3";
+
+package prereqInterface;
+
+message PrereqRequest {
+    map<string,int32> ClassHistory = 1;
+    repeated string Indices = 2;
+}
+
+message PrereqResponse{
+    map<string, bool> Results = 1;
+    repeated string InvalidIndices = 2;
+}
+
+service PrereqValidation {
+    rpc CheckPrereqs(PrereqRequest) returns (PrereqResponse){}
+}

@@ -25,7 +25,8 @@ type Soc struct {
 	Codes           pq.StringArray
 	Synopsis        string
 	Books           pq.StringArray
-	Credits 		int
+	Credits 		    int
+
 }
 
 func RetrieveAllClasses(s *data.DB) (map[string][]Soc, error) {
