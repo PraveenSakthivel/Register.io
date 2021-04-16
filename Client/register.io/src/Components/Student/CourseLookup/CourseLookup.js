@@ -17,7 +17,8 @@ class CourseLookup extends React.Component {
             searchTerm: '',
             viewOpenSections: true,
             viewClosedSections: true,
-            depts : []
+            depts : [],
+            soc : []
         }
         this.dropdownDeptHandler = this.dropdownDeptHandler.bind(this);
         this.returnData = this.returnData.bind(this);
@@ -27,6 +28,31 @@ class CourseLookup extends React.Component {
     componentDidMount(){
         this.setState({depts : this.formatDepts()}) // eventually move this so that it runs only after class list is retrieved
         this.setState({ visibleClasses : this.allDepartments(this.state.classes) }) // same with this
+        this.transformClasses(this.props.soc)
+    }
+
+    transformClasses(rawSoc){
+        let soc = []
+        for(let i = 0; i < rawSoc.length; i++){
+            let r = rawSoc[i]
+            let sections = []
+            let rawSections = r.getSectionsList()
+            let numOpen = 0
+            let numClosed = 0
+            for(let j = 0; j < rawSections.length; j++){
+                let s = rawSections[j]
+                let status = ''
+                if(s.getAvailable())
+                    numOpen++
+                else
+                    numClosed++
+                let section = { section: 'Section '+s.getSection(), status: s.getAvailable(), index: s.getIndex(), time: '(MTh 6:40-8:00pm),(W 7:00-9:00am)', location: 'Busch', instructor:'Centeno, Ana'  }
+                sections.push({ data: section})
+            }
+            let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: '4cr', openSections: numOpen, closedSections: numClosed };
+            soc.push({ data: course, children:sections })
+        }
+        this.setState( { soc:soc } )
     }
 
     dropdownDeptHandler(item, name) {

@@ -97,12 +97,3 @@ class StudentManageReg extends React.Component {
 }
 
 export default StudentManageReg;
-
-const data = 
-[
-    {data: { coursecode:93028, coursenumber: '01:198:352:01', coursename: 'Internet Technology', credits: 4.0, status: "Added!" } },
-    {data: { coursecode:30284, coursenumber: '18:332:251:03', coursename: 'Probability and Random Processes', credits: 3.0, status: "Added!" } },
-    {data: { coursecode:93028, coursenumber: '01:198:352:01', coursename: 'Internet Technology', credits: 4.0, status: "Pending Add" } },
-    {data: { coursecode:30284, coursenumber: '18:332:251:03', coursename: 'Probability and Random Processes', credits: 3.0, status: "Class Filled" } }
-        
-]

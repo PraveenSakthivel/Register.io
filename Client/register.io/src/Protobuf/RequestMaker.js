@@ -30,10 +30,11 @@ export const ValidateLogin = ( data, callback ) => {
 
     let protoToken = new Token();
     protoToken.setToken(data.token);
-
-    //DBRetrieveCourses({}, {})
     
     client.getCurrentRegistrations(protoToken, { "grpc_service" : "uv" }, (err, response) => {
+        
+        console.log(response)
+
         if(response.getUsertype() == 0)
             callback({ usertype: response.getUsertype(), classlist: response.getClassesList() })
         else
@@ -119,9 +120,7 @@ export const DBRetrieveCourses = ( data, callback ) =>{
 
     var request = new ReceiveClassesParams();
     
-    console.log("make request")
     client.retrieveClasses(request, { "grpc_service" : "db" }, (err, response) => {
-        console.log(err)
-        console.log(response)
+        callback(response)
     });
 }

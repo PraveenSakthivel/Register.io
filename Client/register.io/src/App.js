@@ -5,7 +5,7 @@ import Login from './Components/Login/Login'
 import Content from './Components/Content/Content'
 
 // backend
-import { ValidateLogin, RVRequest } from './Protobuf/RequestMaker'
+import { ValidateLogin, RVRequest, DBRetrieveCourses } from './Protobuf/RequestMaker'
 
 class App extends Component {
 
@@ -15,7 +15,8 @@ class App extends Component {
                     userType:-1, //userType: (-2, Loading), (-1, Not Logged in), (0, Student), (1, Admin), (2, Superuser)
                     studentRegistrations:[],
                     enableRegister:false,
-                    registerTime:''
+                    registerTime:'', 
+                    soc:[]
                   }; 
     this.validateLogin = this.validateLogin.bind(this);
     this.logout = this.logout.bind(this);
@@ -35,17 +36,28 @@ class App extends Component {
   }
 
   validateLoginCallback = (serverResponse) => {
-      console.log(serverResponse)
       if(serverResponse != null && serverResponse != ''){
         this.setState({userType : serverResponse.usertype})
         if(serverResponse.usertype == 0){ // if user is a student
           this.setState({studentRegistrations : serverResponse.classlist}) // store the student's current registrations
+          if(this.state.soc == [])
+            DBRetrieveCourses( {}, this.dbRetrieveCoursesCallback )
           if(this.state.registerTime == '')
             RVRequest( {}, this.registrationCallback ) // check if student is eligible to register
         }
       } 
       else 
         this.logout();
+  }
+
+  dbRetrieveCoursesCallback = (serverResponse) =>{
+    this.setState({ soc : serverResponse.getClassesList() })
+    console.log(serverResponse.getClassesList())
+  }
+
+  registrationCallback = (serverResponse) => {
+    this.setState({enableRegister : serverResponse.eligible})
+    this.setState({registerTime : serverResponse.time})
   }
 
   logout(){
@@ -60,13 +72,8 @@ class App extends Component {
     }
   }
 
-  registrationCallback = (serverResponse) => {
-    this.setState({enableRegister : serverResponse.eligible})
-    this.setState({registerTime : serverResponse.time})
-  }
 
   render() {
-
     const userType = this.state.userType;
     let content;
     if (userType == -1) 
@@ -74,7 +81,7 @@ class App extends Component {
     else if(userType == -2)
       content = <div></div>
     else 
-      content = <Content validateLogin = {this.validateLogin} logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
+      content = <Content soc={this.state.soc} validateLogin = {this.validateLogin} logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
 
     return (
       <div class="App" >

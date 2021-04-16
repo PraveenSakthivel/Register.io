@@ -70,19 +70,38 @@ class RegistrationTable extends React.Component {
       // WHATS LEFT: JUST SHOW POPUP IF REGISTERRESULTS IS NOT EMPTY, THEN EMPTY REGISTERRESULTS AND THIS.RESULTMAP
 
       return (
+        <div>
+            {(this.state.registerResults.length != 0)
+                ?
+                    <Popup open={true} modal onClose={() => this.handleClose()} overlayStyle={{backgroundColor:"#00000055"}} >
+                        <div class="registrationTable-popup" style={{height:"fit-content"}}>
+                            <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
+                                <h5>Registration Errors ✋</h5>
+                                <hr style={{marginRight:"7.5%"}}></hr>
+                            </div>
+
+                            {this.state.registerResults.map(i => <div style={{display:"flex",  marginRight:"7.5%"}}><p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}><b>Index: </b>{i.index}</p><p style={{textAlign:"right", flex:"1"}}><b>Issue: </b>{i.error}</p></div>)}
+                            
+                            <hr style={{marginRight:"7.5%", marginBottom:"5%"}}></hr>
+                        </div>
+                    </Popup>
+                :
+                    <div></div>
+            }
         <TreeTable
           value={treeValue}
           onChange={this.handleOnChange}
           headerHeight={50}
           height={treeValue.height}
           >
-  
+
+
             <TreeTable.Column 
                 renderCell={this.renderIndexCell}
                 grow={0.75}
                 renderHeaderCell={() => 
                                     <div>
-                                        <Popup open={this.state.popupOpen} overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#ffffff00", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
+                                        <Popup open={this.state.popupOpen} onOpen={() => this.handleOpen()} overlayStyle={{backgroundColor:"#00000055"}} modal trigger={ <button class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#ffffff00", fontWeight:"600", color:"#0d6efd"}}>Add</button> }>
                                             <div class="registrationTable-popup">
                                                 <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
                                                     <h5>Add Classes 📝</h5>
@@ -146,10 +165,17 @@ class RegistrationTable extends React.Component {
                 />
 
         </TreeTable>
+        
+        </div>
      );
     }
 
-    onCourseAdd = () => {
+    handleClose=()=>{
+        this.setState({registerResults:[]})
+        this.resultMap = []
+    }
+
+    onCourseAdd = (callback) => {
         if(this.state.enableRegister){
             let courseList = []
             for(let i = 1; i <= 8; i++){
@@ -161,6 +187,11 @@ class RegistrationTable extends React.Component {
             }
             CVRequest(courseList, this.courseChangeCallback) 
         }
+        this.setState({popupOpen:false})
+    }
+
+    handleOpen(){
+        this.setState({popupOpen:true})
     }
 
     resultCodes(i){
@@ -169,11 +200,11 @@ class RegistrationTable extends React.Component {
                 return "Insufficient Prereqs"
             case(3):
                 return "Timing Conflict"
-            case(4):
-                return "Invalid Index"
             case(5):
-                return "Server Error"
+                return "Invalid Index"
             case(6):
+                return "Server Error"
+            case(7):
                 return "Course Queueing Error"
         }
     }
