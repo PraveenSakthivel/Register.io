@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type DatabaseWrapperClient interface {
 	RetrieveClasses(ctx context.Context, in *ReceiveClassesParams, opts ...grpc.CallOption) (*ClassesResponse, error)
 	ClassAddStatus(ctx context.Context, in *ClassAddStatusParams, opts ...grpc.CallOption) (*AddStatusResponse, error)
+	ReturnDepartments(ctx context.Context, in *ReceiveDepartmentsParams, opts ...grpc.CallOption) (*DepartmentsResponse, error)
 }
 
 type databaseWrapperClient struct {
@@ -48,12 +49,22 @@ func (c *databaseWrapperClient) ClassAddStatus(ctx context.Context, in *ClassAdd
 	return out, nil
 }
 
+func (c *databaseWrapperClient) ReturnDepartments(ctx context.Context, in *ReceiveDepartmentsParams, opts ...grpc.CallOption) (*DepartmentsResponse, error) {
+	out := new(DepartmentsResponse)
+	err := c.cc.Invoke(ctx, "/dbRequests.DatabaseWrapper/ReturnDepartments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatabaseWrapperServer is the server API for DatabaseWrapper service.
 // All implementations must embed UnimplementedDatabaseWrapperServer
 // for forward compatibility
 type DatabaseWrapperServer interface {
 	RetrieveClasses(context.Context, *ReceiveClassesParams) (*ClassesResponse, error)
 	ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error)
+	ReturnDepartments(context.Context, *ReceiveDepartmentsParams) (*DepartmentsResponse, error)
 	mustEmbedUnimplementedDatabaseWrapperServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedDatabaseWrapperServer) RetrieveClasses(context.Context, *Rece
 }
 func (UnimplementedDatabaseWrapperServer) ClassAddStatus(context.Context, *ClassAddStatusParams) (*AddStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClassAddStatus not implemented")
+}
+func (UnimplementedDatabaseWrapperServer) ReturnDepartments(context.Context, *ReceiveDepartmentsParams) (*DepartmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReturnDepartments not implemented")
 }
 func (UnimplementedDatabaseWrapperServer) mustEmbedUnimplementedDatabaseWrapperServer() {}
 
@@ -116,6 +130,24 @@ func _DatabaseWrapper_ClassAddStatus_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DatabaseWrapper_ReturnDepartments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReceiveDepartmentsParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatabaseWrapperServer).ReturnDepartments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dbRequests.DatabaseWrapper/ReturnDepartments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatabaseWrapperServer).ReturnDepartments(ctx, req.(*ReceiveDepartmentsParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DatabaseWrapper_ServiceDesc is the grpc.ServiceDesc for DatabaseWrapper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var DatabaseWrapper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClassAddStatus",
 			Handler:    _DatabaseWrapper_ClassAddStatus_Handler,
+		},
+		{
+			MethodName: "ReturnDepartments",
+			Handler:    _DatabaseWrapper_ReturnDepartments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
