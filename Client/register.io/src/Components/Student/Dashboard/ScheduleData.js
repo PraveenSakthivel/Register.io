@@ -66,5 +66,8 @@ export const locationColor = [
     }, {
         id: "Cook Douglass",
         color: '#f39c12'
+    },  {
+        id: "Douglas/Cook",
+        color: '#f39c12'
     }
 ];

@@ -14,69 +14,63 @@ class CourseLookup extends React.Component {
             selectedSemester: 0,
             classes: data,
             visibleClasses: [],
-            searchTerm: '',
+            searchTerm: "",
             viewOpenSections: true,
             viewClosedSections: true,
             depts : [],
-            soc : []
+            soc : [],
+            visiblesoc: []
         }
         this.dropdownDeptHandler = this.dropdownDeptHandler.bind(this);
-        this.returnData = this.returnData.bind(this);
         this.searchClasses = this.searchClasses.bind(this);
+        this.wrapper = this.wrapper.bind(this)
+        this.wrapper2 = this.wrapper2.bind(this)
     }
 
     componentDidMount(){
         this.setState({depts : this.formatDepts()}) // eventually move this so that it runs only after class list is retrieved
-        this.setState({ visibleClasses : this.allDepartments(this.state.classes) }) // same with this
-        this.transformClasses(this.props.soc)
-    }
-
-    transformClasses(rawSoc){
-        let soc = []
-        for(let i = 0; i < rawSoc.length; i++){
-            let r = rawSoc[i]
-            let sections = []
-            let rawSections = r.getSectionsList()
-            let numOpen = 0
-            let numClosed = 0
-            for(let j = 0; j < rawSections.length; j++){
-                let s = rawSections[j]
-                let status = ''
-                if(s.getAvailable())
-                    numOpen++
-                else
-                    numClosed++
-                let section = { section: 'Section '+s.getSection(), status: s.getAvailable(), index: s.getIndex(), time: '(MTh 6:40-8:00pm),(W 7:00-9:00am)', location: 'Busch', instructor:'Centeno, Ana'  }
-                sections.push({ data: section})
-            }
-            let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: '4cr', openSections: numOpen, closedSections: numClosed };
-            soc.push({ data: course, children:sections })
-        }
-        this.setState( { soc:soc } )
+        this.setState({soc : this.props.soc})
     }
 
     dropdownDeptHandler(item, name) {
         this.setState({ selectedDept : item.value })
-        console.log(this.state.searchTerm)
-        if(item.value == -1)
-            this.setState({ visibleClasses : this.searchClassesHelper( this.allDepartments(this.state.classes), this.state.searchTerm ) })
-        else
-            this.setState({ visibleClasses : this.searchClassesHelper( this.countSections(this.state.classes[item.value].courses), this.state.searchTerm ) })
+        let socCpy = this.state.soc
+        let result = socCpy.filter(word => word.data.department == item.value);
+        result = result.sort(function(a, b) {
+            return a.data.courseCode.localeCompare(b.data.courseCode, undefined, {
+              numeric: true,
+              sensitivity: 'base'
+            });
+          });
+        this.setState({visiblesoc : result})
+        return result
     }
 
     formatDepts() {
         let depts = this.state.classes
         let formatted = []
-        formatted.push({ label: 'All Departments', value: -1 })
         for(let i = 0; i < depts.length; i++){
             let dept = depts[i]
             formatted.push({ label: dept.department, value: i })
         }
-        return formatted
+
+        return [ { label:"Computer Science", value: 198 }, { label: "Math", value: 440 } ]
     }
 
-    searchClasses( term ){
-        this.setState({ searchTerm : term }, () => this.dropdownDeptHandler({ value : this.state.selectedDept }, ''))
+    wrapper(item, name){
+        this.searchClasses(this.state.searchTerm, item)
+    }
+
+    wrapper2 ( term ){
+        this.searchClasses(term, null)
+    }
+
+    searchClasses( term, item ){
+        this.setState({ searchTerm : term })
+        if(item == null){
+            item = {value : this.state.selectedDept}
+        }
+        this.setState({ visiblesoc : this.searchClassesHelper( this.dropdownDeptHandler(item, ''), term ) })
     }
 
     searchClassesHelper( data, term ){
@@ -95,42 +89,6 @@ class CourseLookup extends React.Component {
         }
     }
 
-    countSections(data){
-        for(let i = 0; i < data.length; i++){
-            let open = 0
-            let closed = 0
-            let children = data[i].children
-            for(let j = 0; j < children.length; j++){
-                if(children[j].data.status)
-                    open++
-                else   
-                    closed++
-            }
-            data[i].data.openSections = open
-            data[i].data.closedSections = closed
-        }
-
-        return data
-    }
-
-    allDepartments(data){
-        let allDepts = []
-        for(let i = 0; i < data.length; i++){
-            let courses = this.countSections(data[i].courses)
-            for(let j = 0; j < courses.length; j++){
-                allDepts.push(courses[j])
-            }
-        }
-        return allDepts
-    }
-
-    returnData(){
-        if(this.state.selectedDept != -1 ) 
-            return this.countSections(this.state.classes[this.state.selectedDept].courses) 
-        else
-            return this.allDepartments(this.state.classes)
-    }
-
     render() {
 
         return (
@@ -146,7 +104,7 @@ class CourseLookup extends React.Component {
                         <p title="Search by Class Name" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Search 🔍&nbsp;</p>
                         <SearchField 
                             placeholder='Search by Class Name'
-                            onChange={this.searchClasses}
+                            onChange={this.wrapper2}
                         />
                     </div>
 
@@ -154,10 +112,10 @@ class CourseLookup extends React.Component {
                         <p title="Select Department" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Department 🏬&nbsp;</p>
                         <Dropdown
                             name="departments"
-                            title="All Departments"
+                            title="Select Department"
                             searchable={["Search for Department", "No matching department"]}
                             list={this.state.depts}
-                            onChange={this.dropdownDeptHandler}
+                            onChange={this.wrapper}
                         />
                     </div>
 
@@ -183,7 +141,7 @@ class CourseLookup extends React.Component {
 
                 </div>
                 <div class="courseLookup-content">
-                    <CourseTable data={ this.state.visibleClasses } enableRegister={this.props.enableRegister} studentRegistrations={this.props.studentRegistrations} />
+                    <CourseTable data={ this.state.visiblesoc } enableRegister={this.props.enableRegister} studentRegistrations={this.props.studentRegistrations} />
                 </div>
             </div>
         );

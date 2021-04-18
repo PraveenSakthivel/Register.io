@@ -35,8 +35,9 @@
 }
 
 
-
-
+.courseTable-courseName:hover{
+  color: var(--color-primary-dark);
+}
 
 
   /* Header */

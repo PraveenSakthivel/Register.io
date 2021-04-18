@@ -10,7 +10,7 @@ class CourseTable extends React.Component {
         treeValue: TreeState.create(this.props.data),
         childrenFontSize: "14px",
         enableRegister: this.props.enableRegister,
-        heavyFontWeight: "400",
+        heavyFontWeight: "500",
         fontWeight: 400,
         registrationsMap: this.registrationsToSet()
       };
@@ -34,10 +34,15 @@ class CourseTable extends React.Component {
 
     render() {
       const { treeValue } = this.state;
+      
+      if(treeValue.data.length == 0){
+        this.setState({ treeValue : TreeState.create([ {data: { coursecode:'', coursenumber: '', coursename: 'Select a Department to Begin', credits: '', status: '' } }]) })
+      }
+
       let totalHeight = 0;
       for(let i = 0; i < treeValue.data.length; i++){
         if(treeValue.data[i].data.time != null){
-            let height = this.returnDateHeight(treeValue.data[i].data.time);
+            let height = this.returnDateHeight(treeValue.data[i].data);
             if(height != 1){
                 treeValue.data[i].metadata.height = 27 * height;
                 if(treeValue.data[i].$state.isVisible)
@@ -107,52 +112,74 @@ class CourseTable extends React.Component {
       this.setState({ treeValue: newValue });
     }
   
-    returnDateHeight = (time) =>{
-        let height = 1;
+    returnDateHeight = (dat) =>{
+        let height = 0;
+        let time = dat.time
         for(let i = 0; i < time.length; i++){
             let c = time.charAt(i);
-            if(c == ',')
+            if(c == ')')
                 height++;
         }
+        let prof = dat.instructor
+        let pHeight = 0
+        for(let i = 0; i < prof.length; i++){
+          let p = prof.charAt(i)
+          if(p == ')')
+            pHeight++
+        }
+        if(pHeight > height)
+          height = pHeight
         return height;
     }
 
     parseDate = (time) =>{
         var timing = "";
         var content = [];
+        let newSeg = false
         for(let i = 0; i < time.length; i++){
             let c = time.charAt(i);
-            if(c == ','){
+            if(!newSeg && c == ','){
                 content.push(<div><span style={{fontSize: this.state.childrenFontSize}}>{timing}</span><br></br></div>);
                 timing = "";
             }
             else if(c != '(' && c != ')')
                 timing+=c;
+            else if(c == '('){
+              newSeg = true
+            }
+            else if(c == ')'){
+              newSeg = false
+            }
         }
         content.push(<div key={timing}><span style={{fontSize: this.state.childrenFontSize}}>{timing}</span></div>);
         return <div>{content}</div>;
     }
 
-    onCourseAdd = (row) => {
-
+    onCourseAdd = (index) => {
+      // index
     }
 
     renderAddCell = (row) => {
       return(
         <div>
-          {(row.data.name == null && this.state.enableRegister)
+          {(row.data.coursename == "Select a Department to Begin")
+          ?
+            <div></div>
+          :
+          (row.data.name == null && this.state.enableRegister)
             ?
               (this.state.registrationsMap.has(row.data.index))
               ?
                 <button class="courseTable-addBtn" style={{pointerEvents:"none", textDecoration:"none", border:"none", fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"darkgreen"}}>Added!</button>
               :
-                <button onClick={this.onCourseAdd(row)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
+                <button onClick={this.onCourseAdd(row.data.index)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
             :
               (row.data.name != null)
               ?
                 <a style={{fontWeight:"600", textDecoration:"underline"}}>PreReqs</a>
               :
                 <div></div>
+          
           }
         </div>
       );
@@ -161,10 +188,19 @@ class CourseTable extends React.Component {
     renderSixthCell = (row) => {
         return (
             <div>
-              {(row.data.instructor != null)
+              {(row.data.coursename == "Select a Department to Begin")
+          ?
+            <div></div>
+          :
+              (row.data.instructor != null)
                   ?
                   (
-                      <span style={{fontSize: this.state.childrenFontSize}}>{row.data.instructor}</span>
+                      /*<span style={{fontSize: this.state.childrenFontSize}}>{row.data.instructor}</span>*/
+                      <div>
+                      {
+                          this.parseDate(row.data.instructor)
+                      }
+                      </div>
                   )
                   :
                   (
@@ -178,7 +214,11 @@ class CourseTable extends React.Component {
     renderFifthCell = (row) => {
         return (
             <div>
-              {(row.data.time != null)
+              {(row.data.coursename == "Select a Department to Begin")
+          ?
+            <div></div>
+          :
+              (row.data.time != null)
                   ?
                   (
                       (row.data.time != "By Arrangement")
@@ -203,7 +243,11 @@ class CourseTable extends React.Component {
     renderFourthCell = (row) => {
         return (
             <div>
-              {(row.data.status == null)
+              {(row.data.coursename == 'Select a Department to Begin')
+          ?
+            <div></div>
+          :
+              (row.data.status == null)
                   ?
                   (
                       <div>
@@ -260,21 +304,31 @@ class CourseTable extends React.Component {
     }
 
     renderIndexCell = (row) => {
+
         return (
           <div style={{ paddingLeft: (row.metadata.depth * 15) + 'px'}}
             className={row.metadata.hasChildren ? 'with-children' : 'without-children'}>
             
-            {(row.metadata.hasChildren)
+            {/*(row.metadata.hasChildren)
               ? (
                   <button className="toggle-button" onClick={row.toggleChildren}></button>
                 )
               : ''
-            }
+            
+              */}
+
+            {(row.data.coursename == 'Select a Department to Begin')
+              ?
+                <span style={{fontWeight:"500"}}>{row.data.coursename}</span>
+              :
+                <div></div>
+            } 
+
             {(row.data.name != null)
               ? 
-                <span style={{fontWeight: "500"}}>{row.data.name}</span> 
+                <div onClick={row.toggleChildren} style={{cursor:"pointer"}}><button className="toggle-button" ></button><span class="courseTable-courseName" style={{fontWeight:"500"}}>{row.data.name}</span> </div>
               : 
-                <span style={{fontWeight: this.state.heavyFontWeight, fontSize: this.state.childrenFontSize}}>{row.data.section}</span>
+                <span style={{fontSize: this.state.childrenFontSize}}>{row.data.section}</span>
               }
           </div>
         );

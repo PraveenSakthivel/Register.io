@@ -45,6 +45,10 @@ class Dashboard extends React.Component {
 
     render() {
         let groupColor = {"Watchlist":"var(--color-primary)", "Course Approved":"#F79F1F", "SPN":"#009432"}
+        let credits = 0
+        this.props.studentRegistrations.map(n => (
+            credits += n.getCredits()
+        ))
 
         return (
             <div class="dashboard">
@@ -74,9 +78,12 @@ class Dashboard extends React.Component {
                     </div>
                     */}
                     <div class="dashboard-schedule" style={{marginBottom:"100px"}}>
+                        
+                        {/*
                         <h5 style={{fontSize:"18px", paddingLeft:"1%"}}>My Schedule&nbsp;&nbsp;📅</h5>
+                        */}
                         <div style={{display:"flex", marginTop:"20px", marginBottom:"1%"}}>
-                            <div style={{paddingLeft:"1%", paddingRight:"15px", width:"fit-content"}}>
+                            <div style={{paddingLeft:"2px", paddingRight:"15px", width:"fit-content"}}>
                                 <p title="Semester" style={{fontSize:"12px", marginBottom:'1px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Semester 📘&nbsp;</p>
                                 <Dropdown
                                     name="semesters"
@@ -95,19 +102,24 @@ class Dashboard extends React.Component {
                                         <p style={{fontWeight:"500"}}>: College Ave &nbsp;&nbsp;</p>
                                     <div style={{marginTop:"5.5px", marginRight:"5px", backgroundColor:"#f39c12", height: "15px", width:"15px", border:"solid 2px black", borderRadius:"5px"}}></div>
                                         <p style={{fontWeight:"500"}}>: Cook Douglass</p>
-                                    <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%"}}>Credits 💰:&nbsp;&nbsp;17.0</p>
+                                    <p style={{fontWeight:"500", flex: "1", textAlign:"right", paddingRight:"5%"}}>Credits 💰:&nbsp;&nbsp;{credits}</p>
                                 </div>
                             </div>
                         </div>
-                        <Schedule />
+                        <Schedule studentRegistrations={this.props.studentRegistrations} />
                         <div style={{paddingLeft:"2.5%"}}>
                             <p style={{fontWeight:"500", textDecoration:"underline"}}>Classes</p>
                             <div style={{paddingLeft:"0%"}}>
+                                {this.props.studentRegistrations.map(i => (
+                                    <li class="dashboard-class"><b style={{fontWeight:"500"}}>{i.getName()}</b>&nbsp;&nbsp;({i.getSchool()}:{i.getDepartment()}:{i.getClassnumber()})&nbsp;&nbsp;Credits: {i.getCredits()}&nbsp;&nbsp;Location: {i.getLocation()}</li>
+                                ))}
+                            {/*
                                 <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
                                 <li class="dashboard-class"><b style={{fontWeight:"500"}}>Art 101</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
                                 <li class="dashboard-class"><b style={{fontWeight:"500"}}>Public Speaking</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
                                 <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
                                 <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
+                            */}
                             </div>
                         </div>
                     </div>

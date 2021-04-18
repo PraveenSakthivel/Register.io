@@ -27,7 +27,7 @@
 
 .dd-wrapper {
   position: relative;
-  width: fit-content !important;
+  /*width: fit-content !important;*/
   max-width: 300px !important;
   font-size: 15px !important;
   user-select: none;
@@ -37,6 +37,7 @@
 .dd-header {
     line-height: 36px !important;
 }
+
 
 .dd-header-title{
   overflow: hidden;

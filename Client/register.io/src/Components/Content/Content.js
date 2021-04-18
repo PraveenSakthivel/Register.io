@@ -35,7 +35,7 @@ class Content extends React.Component {
         switch(this.state.componentID){
             case("Dashboard"):
                 if(userType == 0)
-                    page = <StudentDashboard />
+                    page = <StudentDashboard studentRegistrations = {this.props.studentRegistrations} />
                 else if(userType == 1)
                     page = <Analytics />
                 break;

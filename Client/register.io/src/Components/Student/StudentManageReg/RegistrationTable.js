@@ -17,7 +17,9 @@ class RegistrationTable extends React.Component {
         registerTime: '',
         childrenFontSize: '15px',
         popupOpen: false,
-        registerResults:[]
+        registerResults:[],
+        posResults: [],
+        pends: []
       };
 
       this.onCourseDrop = this.onCourseDrop.bind(this);
@@ -185,6 +187,7 @@ class RegistrationTable extends React.Component {
                     courseList.push({val:val, reqop:'ADD'})
                 }
             }
+
             CVRequest(courseList, this.courseChangeCallback) 
         }
         this.setState({popupOpen:false})
@@ -210,20 +213,24 @@ class RegistrationTable extends React.Component {
     }
 
     resultMap = []
+    posResultMap = []
     fetchReg = false
 
     logMapElements(value, key, map) {
         if(value != 1)
             this.resultMap.push({ index: key, error: this.resultCodes(value) })
-        else
+        else{
             this.fetchReg = true
+            this.posResultMap.push({ index: key })
+        }
     }
+
 
     courseChangeCallback = ( serverResponse ) =>{
         // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
         let responseMap = serverResponse
+        this.posResultMap = []
         responseMap.forEach(this.logMapElements.bind(this))
-        console.log(this.resultMap)
         this.setState({ registerResults : this.resultMap })
 
         if(this.fetchReg)
@@ -235,8 +242,8 @@ class RegistrationTable extends React.Component {
     fetchRegistrations = () => {
         var startTime = new Date().getTime(); 
         this.fetchRegistrationsCaller = setInterval(() => {
-            
             this.fetchReg = false
+
             this.validate()
             if(new Date().getTime() - startTime > 2001){
                 clearInterval(this.fetchRegistrationsCaller);
