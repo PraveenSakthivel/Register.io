@@ -37,6 +37,10 @@ class RegistrationTable extends React.Component {
     componentDidUpdate ( prevProps ) {
         if(this.props.classes.length != prevProps.classes.length){
             this.setState({treeValue: TreeState.create(this.props.classes)})
+            //clearInterval(this.fetchRegistrationsCaller)
+            //this.fetchRegistrationsCaller = undefined
+        }
+        if(this.props.classes.length == prevProps.classes.length + this.state.registerResults.length || this.props.classes.length == prevProps.classes.length -1){
             clearInterval(this.fetchRegistrationsCaller)
             this.fetchRegistrationsCaller = undefined
         }
@@ -71,6 +75,15 @@ class RegistrationTable extends React.Component {
 
       // WHATS LEFT: JUST SHOW POPUP IF REGISTERRESULTS IS NOT EMPTY, THEN EMPTY REGISTERRESULTS AND THIS.RESULTMAP
 
+      var statusColors = (status) =>{
+        if(status == "Added!")
+            return { fontWeight:"500", color: "green"}
+        else if(status == "Dropped!")
+            return { fontWeight:"500", color: "green"}
+        else
+            return { fontWeight:"500", color: "red"}
+      }
+
       return (
         <div>
             {(this.state.registerResults.length != 0)
@@ -78,11 +91,18 @@ class RegistrationTable extends React.Component {
                     <Popup open={true} modal onClose={() => this.handleClose()} overlayStyle={{backgroundColor:"#00000055"}} >
                         <div class="registrationTable-popup" style={{height:"fit-content"}}>
                             <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
-                                <h5>Registration Issues ✋</h5>
+                                <h5>Registration Results 🧾</h5>
                                 <hr style={{marginRight:"7.5%"}}></hr>
                             </div>
-
-                            {this.state.registerResults.map(i => <div style={{display:"flex",  marginRight:"7.5%"}}><p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}><b>Index: </b>{i.index}</p><p style={{textAlign:"right", flex:"1"}}><b>Issue: </b>{i.error}</p></div>)}
+                            
+                            {this.state.registerResults.map(i => 
+                                <div style={{display:"flex",  marginRight:"7.5%"}}>
+                                    <p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}>
+                                        <b>Index: </b>{i.index}</p>
+                                    <p style={{textAlign:"right", flex:"1"}}>
+                                        <b>Status: </b><b style={statusColors(i.status)}>{i.status}</b></p>
+                                </div>
+                            )}
                             
                             <hr style={{marginRight:"7.5%", marginBottom:"7.5%"}}></hr>
                         </div>
@@ -199,6 +219,8 @@ class RegistrationTable extends React.Component {
 
     resultCodes(i){
         switch(i){
+            case(1):
+                return "Added!"
             case(2):
                 return "Insufficient Prereqs"
             case(3):
@@ -218,19 +240,27 @@ class RegistrationTable extends React.Component {
 
     logMapElements(value, key, map) {
         if(value != 1)
-            this.resultMap.push({ index: key, error: this.resultCodes(value) })
+            this.resultMap.push({ index: key, status: this.resultCodes(value) })
         else{
+            this.resultMap.push({ index: key, status: this.resultCodes(value) })
             this.fetchReg = true
             this.posResultMap.push({ index: key })
         }
     }
 
 
-    courseChangeCallback = ( serverResponse ) =>{
+    courseChangeCallback = ( serverResponse, action ) =>{
         // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
         let responseMap = serverResponse
         this.posResultMap = []
         responseMap.forEach(this.logMapElements.bind(this))
+        if(action == "DROP"){
+            for(let i = 0; i < this.resultMap.length; i++){
+             if(this.resultMap[i].status == "Added!"){
+                    this.resultMap[i].status = "Dropped!"
+                }
+            }
+        }
         this.setState({ registerResults : this.resultMap })
 
         if(this.fetchReg)
@@ -243,7 +273,7 @@ class RegistrationTable extends React.Component {
         var startTime = new Date().getTime(); 
         this.fetchRegistrationsCaller = setInterval(() => {
             this.fetchReg = false
-
+            console.log("called")
             this.validate()
             if(new Date().getTime() - startTime > 2001){
                 clearInterval(this.fetchRegistrationsCaller);

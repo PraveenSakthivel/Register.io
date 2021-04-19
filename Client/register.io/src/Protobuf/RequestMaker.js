@@ -81,7 +81,7 @@ export const CVRequest = ( data, callback ) =>{
     request.setToken(window.sessionStorage.getItem("token").toString());
     
     client.changeRegistration(request, { "grpc_service" : "cv" }, (err, response) => {
-        callback(response.getResultsMap());
+        callback(response.getResultsMap(), data[0].reqop);
     });
 
 }

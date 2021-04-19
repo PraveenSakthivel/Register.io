@@ -35,7 +35,7 @@ class CourseTable extends React.Component {
     render() {
       const { treeValue } = this.state;
       
-      if(treeValue.data.length == 0){
+      if(treeValue.data.length == 0 && !this.props.dept){
         this.setState({ treeValue : TreeState.create([ {data: { coursecode:'', coursenumber: '', coursename: 'Select a Department to Begin', credits: '', status: '' } }]) })
       }
 

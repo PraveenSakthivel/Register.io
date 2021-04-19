@@ -3,6 +3,7 @@ import 'bootstrap/js/dist/dropdown';
 import 'bootstrap/js/dist/button';
 import RegistrationTable from './RegistrationTable'
 import { Dropdown } from 'reactjs-dropdown-component'
+import Popup from "reactjs-popup"
 
 class StudentManageReg extends React.Component {
 
@@ -11,7 +12,8 @@ class StudentManageReg extends React.Component {
         this.state = { classes: this.registrationsFormatter(), 
                         semesters: [{ label: 'Spring 2021', value: 'Spring 2021' }],
                         lists: [{ label: 'Schedule 📅', value: 'Schedule' }, { label: 'Watchlist 😎', value: 'Watchlist' }],
-                        numCredits:''
+                        numCredits:'',
+                        deletedClasses: []
                     };
         this.updateClasses = this.updateClasses.bind(this);
     }
@@ -19,6 +21,20 @@ class StudentManageReg extends React.Component {
     componentDidUpdate ( prevProps ) {
         if(this.props.studentRegistrations != prevProps.studentRegistrations)
             this.setState({ classes : this.registrationsFormatter() })
+
+        let orig = prevProps.studentRegistrations
+        let curr = this.props.studentRegistrations
+        if(orig.length > curr.length){
+            let deleted = []
+            for(let i = 0; i < orig.length; i++){
+                if(i > curr.length-1){
+                    deleted.push({ index: orig[i].getIndex() })
+                }
+            }
+            if(deleted.length != 0){
+                this.setState({ deletedClasses : deleted })
+            }
+        }
     }
 
     updateClasses(e){
@@ -48,15 +64,39 @@ class StudentManageReg extends React.Component {
             formattedData.push({data : classData})
         }
 
-        this.setState({numCredits : totalCredits + '.0'})
+        this.setState({numCredits : totalCredits })
 
         return formattedData
+    }
+
+    handleClose(){
+        this.setState({deletedClasses : []})
     }
 
     render() {
 
         return (
+            
             <div class="studentManageReg">
+
+                {/*(this.state.deletedClasses.length != 0)
+                    ?
+                        <Popup open={true} modal onClose={() => this.handleClose()} overlayStyle={{backgroundColor:"#00000055"}} >
+                            <div class="registrationTable-popup" style={{height:"fit-content"}}>
+                                <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
+                                    <h5>Success ✅</h5>
+                                    <hr style={{marginRight:"7.5%"}}></hr>
+                                </div>
+
+                                {this.state.deletedClasses.map(i => <div style={{display:"flex",  marginRight:"7.5%"}}><p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}><b>Index: </b>{i.index}</p><p style={{textAlign:"right", flex:"1"}}><b>Status: </b><b style={{color:"red", fontWeight:"500"}}>Dropped 🗑️</b></p></div>)}
+                                
+                                <hr style={{marginRight:"7.5%", marginBottom:"7.5%"}}></hr>
+                            </div>
+                        </Popup>
+                    :
+                        <div></div>
+                */}
+
                 <div class="studentManageReg-title">
                     <h3 style={{paddingBottom: "1%"}}>Manage Registration</h3>
                     <hr style={{color:"grey", marginRight:"15%", marginBottom:"0"}}></hr>

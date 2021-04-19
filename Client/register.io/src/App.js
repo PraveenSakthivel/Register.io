@@ -140,7 +140,7 @@ class App extends Component {
             let section = { section: 'Section '+s.getSection(), status: s.getAvailable(), index: s.getIndex(), time: mtgStr, location: locStr, instructor:instStr  }
             sections.push({ data: section})
         }
-        let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: '4cr', openSections: numOpen, closedSections: numClosed };
+        let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: "N/A", openSections: numOpen, closedSections: numClosed };
         soc.push({ data: course, children:sections })
     }
     this.setState( { soc:soc } )
