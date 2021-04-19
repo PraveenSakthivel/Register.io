@@ -51,6 +51,19 @@ func (s *Server) RetrieveClasses(ctx context.Context, input *ReceiveClassesParam
 	return &resp, nil
 }
 
+func (s *Server) ReturnDepartments(ctx context.Context, input *ReceiveDepartmentsParams) (*DepartmentsResponse, error) {
+	dprint(s, "REQUEST: Retrieve list of departments")
+	departments, err:= models.RetrieveDepartments(s.Db)
+	if err != nil {
+		return nil, err
+	}
+	dprint(s, "OK: Successfully retrieved all departments")
+	var resp DepartmentsResponse
+	resp.Departments = departments
+	dprint(s, "OK: Serialized department map output")
+	return &resp, nil
+}
+
 func (s *Server) ClassAddStatus(ctx context.Context, input *ClassAddStatusParams) (*AddStatusResponse, error) {
 	dprint(s, "REQUEST: Checking statuses of classes")
 	log.Println("Secret: "+ s.TokenSecret)
@@ -128,7 +141,7 @@ func ConvertClasses(classesMap map[string][]models.Soc) ([]*Class, error) {
 			individual_class = soc_item
 		}
 		temp := Class{Level: individual_class.Level, School: int32(individual_class.School), Department: int32(individual_class.Department),
-		ClassNum: int32(individual_class.ClassNumber), Name: individual_class.Name, Codes: individual_class.Codes, Synopsis: individual_class.Synopsis, 
+		ClassNum: int32(individual_class.ClassNumber), Credits: int32(individual_class.Credits), Name: individual_class.Name, Codes: individual_class.Codes, Synopsis: individual_class.Synopsis, 
 		Books: individual_class.Books, Sections: sectionList}
 
 		convertedList = append(convertedList, &temp)
