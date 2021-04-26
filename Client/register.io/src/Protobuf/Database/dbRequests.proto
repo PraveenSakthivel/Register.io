@@ -5,12 +5,19 @@ package dbRequests;
 service DatabaseWrapper {
     rpc RetrieveClasses(ReceiveClassesParams) returns (ClassesResponse) {}
     rpc ClassAddStatus(ClassAddStatusParams) returns (AddStatusResponse) {}
+    rpc ReturnDepartments(ReceiveDepartmentsParams) returns (DepartmentsResponse) {}
 }
 
 enum AddStatus {
     PENDING = 0; // class add is still pending (not in db, class isn't full)
     ADDED = 1; // able to add class (in db)
     FAILED = 2; // unable to add class (not in db, class is full)
+}
+
+message ReceiveDepartmentsParams {}
+
+message DepartmentsResponse {
+    map<int32, string> departments=1;
 }
 
 message ClassAddStatusParams {
@@ -32,11 +39,12 @@ message Class {
     int32 school=2;
     int32 department=3;
     int32 classNum=4;
-    string name=5;
-    repeated string codes=6;
-    string synopsis=7;
-    repeated string books=8;
-    repeated Section sections=9;
+    int32 credits=5;
+    string name=6;
+    repeated string codes=7;
+    string synopsis=8;
+    repeated string books=9;
+    repeated Section sections=10;
 }
 
 message Section {

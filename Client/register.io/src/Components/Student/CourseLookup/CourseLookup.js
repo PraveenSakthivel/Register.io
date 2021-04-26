@@ -16,9 +16,9 @@ class CourseLookup extends React.Component {
             searchTerm: "",
             viewOpenSections: true,
             viewClosedSections: true,
-            depts : [],
             soc : [],
-            visiblesoc: []
+            visiblesoc: [],
+            depts: []
         }
         this.dropdownDeptHandler = this.dropdownDeptHandler.bind(this);
         this.searchClasses = this.searchClasses.bind(this);
@@ -27,8 +27,15 @@ class CourseLookup extends React.Component {
     }
 
     componentDidMount(){
-        this.setState({depts : this.formatDepts()}) // eventually move this so that it runs only after class list is retrieved
+        this.setState({depts : this.props.depts}) // eventually move this so that it runs only after class list is retrieved
         this.setState({soc : this.props.soc})
+    }
+
+    componentDidUpdate(prevprops){
+        if(this.props.soc != prevprops.soc)
+            this.setState({soc : this.props.soc})
+        if(this.props.depts != prevprops.depts)
+            this.setState({depts : this.props.depts})
     }
 
     dropdownDeptHandler(item, name) {
@@ -43,11 +50,6 @@ class CourseLookup extends React.Component {
           });
         this.setState({visiblesoc : result})
         return result
-    }
-
-    formatDepts() {
-
-        return [ { label:"Computer Science", value: 198 }, { label: "General Engineering", value: 440 } ]
     }
 
     wrapper(item, name){
@@ -123,7 +125,7 @@ class CourseLookup extends React.Component {
                             <label class="form-check-label" for="inlineCheckbox2">Closed</label>
                         </div>
                     </div>
-
+{/*
                     <div style={{fontSize:"15px"}} >
                         <p title="Classes that don't conflict with current registrations" style={{fontSize:"12px", marginBottom:'9px', fontFamily:'Lato', width:'fit-content'}}>&nbsp;Fits My Schedule 🧩&nbsp;</p>
                         <div class="form-check form-check-inline" >
@@ -131,7 +133,7 @@ class CourseLookup extends React.Component {
                             <label class="form-check-label" for="inlineCheckbox1">Compatible Only</label>
                         </div>
                     </div>
-
+*/}
                 </div>
                 <div class="courseLookup-content">
                     <CourseTable dept={(this.state.selectedDept != -1)? true : false} data={ this.state.visiblesoc } enableRegister={this.props.enableRegister} studentRegistrations={this.props.studentRegistrations} />

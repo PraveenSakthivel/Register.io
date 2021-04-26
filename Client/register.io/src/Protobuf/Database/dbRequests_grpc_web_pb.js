@@ -230,5 +230,85 @@ proto.dbRequests.DatabaseWrapperPromiseClient.prototype.classAddStatus =
 };
 
 
+/**
+ * @const
+ * @type {!grpc.web.MethodDescriptor<
+ *   !proto.dbRequests.ReceiveDepartmentsParams,
+ *   !proto.dbRequests.DepartmentsResponse>}
+ */
+const methodDescriptor_DatabaseWrapper_ReturnDepartments = new grpc.web.MethodDescriptor(
+  '/dbRequests.DatabaseWrapper/ReturnDepartments',
+  grpc.web.MethodType.UNARY,
+  proto.dbRequests.ReceiveDepartmentsParams,
+  proto.dbRequests.DepartmentsResponse,
+  /**
+   * @param {!proto.dbRequests.ReceiveDepartmentsParams} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.dbRequests.DepartmentsResponse.deserializeBinary
+);
+
+
+/**
+ * @const
+ * @type {!grpc.web.AbstractClientBase.MethodInfo<
+ *   !proto.dbRequests.ReceiveDepartmentsParams,
+ *   !proto.dbRequests.DepartmentsResponse>}
+ */
+const methodInfo_DatabaseWrapper_ReturnDepartments = new grpc.web.AbstractClientBase.MethodInfo(
+  proto.dbRequests.DepartmentsResponse,
+  /**
+   * @param {!proto.dbRequests.ReceiveDepartmentsParams} request
+   * @return {!Uint8Array}
+   */
+  function(request) {
+    return request.serializeBinary();
+  },
+  proto.dbRequests.DepartmentsResponse.deserializeBinary
+);
+
+
+/**
+ * @param {!proto.dbRequests.ReceiveDepartmentsParams} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @param {function(?grpc.web.Error, ?proto.dbRequests.DepartmentsResponse)}
+ *     callback The callback function(error, response)
+ * @return {!grpc.web.ClientReadableStream<!proto.dbRequests.DepartmentsResponse>|undefined}
+ *     The XHR Node Readable Stream
+ */
+proto.dbRequests.DatabaseWrapperClient.prototype.returnDepartments =
+    function(request, metadata, callback) {
+  return this.client_.rpcCall(this.hostname_ +
+      '/dbRequests.DatabaseWrapper/ReturnDepartments',
+      request,
+      metadata || {},
+      methodDescriptor_DatabaseWrapper_ReturnDepartments,
+      callback);
+};
+
+
+/**
+ * @param {!proto.dbRequests.ReceiveDepartmentsParams} request The
+ *     request proto
+ * @param {?Object<string, string>} metadata User defined
+ *     call metadata
+ * @return {!Promise<!proto.dbRequests.DepartmentsResponse>}
+ *     Promise that resolves to the response
+ */
+proto.dbRequests.DatabaseWrapperPromiseClient.prototype.returnDepartments =
+    function(request, metadata) {
+  return this.client_.unaryCall(this.hostname_ +
+      '/dbRequests.DatabaseWrapper/ReturnDepartments',
+      request,
+      metadata || {},
+      methodDescriptor_DatabaseWrapper_ReturnDepartments);
+};
+
+
 module.exports = proto.dbRequests;
 

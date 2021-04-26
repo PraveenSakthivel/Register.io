@@ -57,7 +57,7 @@ class StudentManageReg extends React.Component {
                 coursecode : rawData[i].array[5],
                 coursenumber : rawData[i].array[2] + ':' + rawData[i].array[3] + ':' + rawData[i].array[4] + ':' + rawData[i].array[7],
                 coursename : rawData[i].array[6],
-                credits : credits,
+                credits : rawData[i].array[15],
                 status : "Added!"
             }
 

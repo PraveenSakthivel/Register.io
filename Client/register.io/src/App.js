@@ -5,7 +5,7 @@ import Login from './Components/Login/Login'
 import Content from './Components/Content/Content'
 
 // backend
-import { ValidateLogin, RVRequest, DBRetrieveCourses } from './Protobuf/RequestMaker'
+import { ValidateLogin, RVRequest, DBRetrieveCourses, DBRetrieveDepts, GetHeatMapData, GetBarGraphData } from './Protobuf/RequestMaker'
 
 class App extends Component {
 
@@ -16,14 +16,14 @@ class App extends Component {
                     studentRegistrations:[],
                     enableRegister:false,
                     registerTime:'', 
-                    soc:[]
+                    soc:[],
+                    depts:[]
                   }; 
     this.validateLogin = this.validateLogin.bind(this);
     this.logout = this.logout.bind(this);
   }
 
   validateLogin(token){
-
     // TEMPORARY
     if(token == 'admin'){
       window.sessionStorage.setItem("token", 'admin')
@@ -40,8 +40,10 @@ class App extends Component {
         this.setState({userType : serverResponse.usertype})
         if(serverResponse.usertype == 0){ // if user is a student
           this.setState({studentRegistrations : serverResponse.classlist}, () => this.formatClassList()) // store the student's current registrations
-          if(this.state.soc.length == 0)
+          if(this.state.soc.length == 0){
             DBRetrieveCourses( {}, this.dbRetrieveCoursesCallback )
+            DBRetrieveDepts( {}, this.dbRetrieveDeptsCallback )
+          }
           if(this.state.registerTime == '')
             RVRequest( {}, this.registrationCallback ) // check if student is eligible to register
         }
@@ -82,6 +84,10 @@ class App extends Component {
 
   dbRetrieveCoursesCallback = (serverResponse) =>{
     this.transformClasses(serverResponse.getClassesList())
+  }
+
+  dbRetrieveDeptsCallback = (serverResponse) =>{
+    this.setState({ depts:serverResponse })
   }
 
   registrationCallback = (serverResponse) => {
@@ -140,7 +146,7 @@ class App extends Component {
             let section = { section: 'Section '+s.getSection(), status: s.getAvailable(), index: s.getIndex(), time: mtgStr, location: locStr, instructor:instStr  }
             sections.push({ data: section})
         }
-        let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: "N/A", openSections: numOpen, closedSections: numClosed };
+        let course = { department:r.getDepartment(), name:r.getName(), courseCode:r.getSchool()+":"+r.getDepartment()+":"+r.getClassnum(), credits: r.getCredits(), openSections: numOpen, closedSections: numClosed };
         soc.push({ data: course, children:sections })
     }
     this.setState( { soc:soc } )
@@ -154,7 +160,7 @@ class App extends Component {
     else if(userType == -2)
       content = <div></div>
     else 
-      content = <Content soc={this.state.soc} validateLogin = {this.validateLogin} logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
+      content = <Content depts={this.state.depts} soc={this.state.soc} validateLogin = {this.validateLogin} logout = {this.logout} userType = {userType} studentRegistrations = {this.state.studentRegistrations} enableRegister = {this.state.enableRegister} registerTime = {this.state.registerTime} />;
 
     return (
       <div class="App" >

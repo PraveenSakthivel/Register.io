@@ -110,8 +110,8 @@ export const RVRequest = ( data, callback ) =>{
 /* ----------------------------------------------------------------------------------------- */
 
 // DATABASE REQUESTS Stuff
-const { ReceiveClassesParams, ClassAddStatusParams } = require('./Database/dbRequests_pb.js')
-const { DatabaseWrapperClient } = require('./Database/dbRequests_grpc_web_pb.js')
+const { ReceiveClassesParams, ClassAddStatusParams, ReceiveDepartmentsParams } = require('./Database/dbRequests_pb.js')
+const { DatabaseWrapperClient, default: dbRequests } = require('./Database/dbRequests_grpc_web_pb.js')
 
 // data: {} (empty)
 // response: [ { Class }, { Class }, {..} ]
@@ -123,4 +123,64 @@ export const DBRetrieveCourses = ( data, callback ) =>{
     client.retrieveClasses(request, { "grpc_service" : "db" }, (err, response) => {
         callback(response)
     });
+}
+
+var deptMap = []
+
+var logMapElements = (value, key, map) => {
+    deptMap.push({ label: value, value: key })
+}
+
+// data: {} (empty)
+// response: [ { Departments } ]
+export const DBRetrieveDepts = ( data, callback ) =>{
+    var client = new DatabaseWrapperClient(endpoint)
+
+    var request = new ReceiveDepartmentsParams();
+    
+    client.returnDepartments(request, { "grpc_service" : "db" }, (err, response) => {
+        deptMap = []
+        response.getDepartmentsMap().forEach(logMapElements.bind(this)) 
+        callback(deptMap)
+    });
+}
+
+// data:
+// response:
+export const DBVerifyAdd = ( data, callback ) => {
+    var client = new DatabaseWrapperClient(endpoint)
+
+    var request = new ClassAddStatusParams();
+    
+    client.classAddStatus(request, { "grpc_service" : "db" }, (err, response) => {
+        callback(response)
+    });
+}
+
+/* ----------------------------------------------------------------------------------------- */
+
+// ANALYTICS Stuff
+const { Empty, DayofWeek } = require('./Analytics/analytics_pb')
+const { AnalyticsEndpointClient } = require('./Analytics/analytics_grpc_web_pb')
+
+export const GetHeatMapData = ( data, callback) => {
+    var client = new AnalyticsEndpointClient(endpoint)
+
+    var request = new Empty();
+
+    client.getHeatmap(request, { "grpc_service" : "analytics" }, (err, response) => {
+        let test = response.getDaysMap()
+        callback(test)
+    })
+}
+
+export const GetBarGraphData = ( data, callback) => {
+    var client = new AnalyticsEndpointClient(endpoint)
+
+    var request = new Empty();
+
+    client.getBargraph(request, { "grpc_service" : "analytics" }, (err, response) => {
+        let test = response.getDataMap()
+        callback(test)
+    })
 }

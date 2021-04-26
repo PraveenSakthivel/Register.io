@@ -54,13 +54,9 @@ class Navbar extends React.Component {
                     </div>
           case 1:
             return  <div><img class="navbar-logo" src={logo}></img>
-                        <div class="navbar-item" id="Admin Account">
-                            <p>🧑</p>
-                            <a class="navbar-item-child" >My Account</a>
-                        </div>
                         <div class="navbar-item navbar-selected" id="Dashboard">
                             <p>📈</p>
-                            <a class="navbar-item-child">Dashboard</a>
+                            <a class="navbar-item-child">Analytics</a>
                         </div>
                         <div class="navbar-item" style={{position: "absolute", left: 0, right: 0, bottom: 0, marginBottom: "25%"}} id="Logout">
                             <p>⬅️</p>

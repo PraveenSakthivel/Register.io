@@ -113,13 +113,6 @@ class Dashboard extends React.Component {
                                 {this.props.studentRegistrations.map(i => (
                                     <li class="dashboard-class"><b style={{fontWeight:"500"}}>{i.getName()}</b>&nbsp;&nbsp;({i.getSchool()}:{i.getDepartment()}:{i.getClassnumber()})&nbsp;&nbsp;Credits: {i.getCredits()}&nbsp;&nbsp;Location: {i.getLocation()}</li>
                                 ))}
-                            {/*
-                                <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
-                                <li class="dashboard-class"><b style={{fontWeight:"500"}}>Art 101</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
-                                <li class="dashboard-class"><b style={{fontWeight:"500"}}>Public Speaking</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
-                                <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
-                                <li class="dashboard-class"><b style={{fontWeight:"500"}}>Digital Logic Design</b> (14:332:226:01) Credits: 3.0 Location: By Arrangement</li>
-                            */}
                             </div>
                         </div>
                     </div>
