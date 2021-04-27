@@ -11,3 +11,9 @@
     margin-top: max(100px, 11%);
     margin-bottom: 2.5%;
 }
+
+.rc-slider-mark-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    white-space: nowrap;
+}

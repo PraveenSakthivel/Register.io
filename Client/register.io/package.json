@@ -21,6 +21,7 @@
     "plotly.js": "^1.58.4",
     "popper.js": "^1.16.1",
     "protoc-gen-grpc-web": "^1.2.1",
+    "rc-slider": "^9.7.2",
     "react": "^17.0.1",
     "react-big-calendar": "^0.33.2",
     "react-countdown": "^2.3.1",

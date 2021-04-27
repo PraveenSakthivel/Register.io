@@ -1,5 +1,9 @@
 import React from 'react';
 import { TreeTable, TreeState } from 'cp-react-tree-table';
+import Popup from "reactjs-popup"
+
+// backend
+import { CVRequest } from '../../../Protobuf/RequestMaker'
 
 class CourseTable extends React.Component {
 
@@ -12,7 +16,9 @@ class CourseTable extends React.Component {
         enableRegister: this.props.enableRegister,
         heavyFontWeight: "500",
         fontWeight: 400,
-        registrationsMap: this.registrationsToSet()
+        registrationsMap: this.registrationsToSet(),
+        index:'',
+        status:''
       };
     }
 
@@ -30,6 +36,10 @@ class CourseTable extends React.Component {
     // deprecated, but still works haha might have to update l8r
     componentWillReceiveProps(prop) {
       this.setState({ treeValue: TreeState.create(prop.data) });
+    }
+
+    handleClose(){
+      this.setState({index:'', status:''})
     }
 
     render() {
@@ -61,50 +71,82 @@ class CourseTable extends React.Component {
         }
       }
       treeValue.height = totalHeight;
+      var statusColors = (status) =>{
+        if(status == "Added!")
+            return { fontWeight:"500", color: "green"}
+        else if(status == "Dropped!")
+            return { fontWeight:"500", color: "green"}
+        else
+            return { fontWeight:"500", color: "red"}
+      }
 
       return (
-        <TreeTable
-          value={treeValue}
-          onChange={this.handleOnChange}
-          headerHeight={50}
-          height={treeValue.height}
-          >
-  
-          <TreeTable.Column grow={1.90}
-            renderCell={this.renderIndexCell}
-            renderHeaderCell={() => <span>Course</span>}/>
+        <div>
+          {(this.state.status != '')
+                ?
+                    <Popup open={true} modal onClose={() => this.handleClose()} overlayStyle={{backgroundColor:"#00000055"}} >
+                        <div class="registrationTable-popup" style={{height:"fit-content"}}>
+                            <div class="registrationTable-popupHeader" style={{marginBottom:"5%"}}>
+                                <h5>Registration Results 🧾</h5>
+                                <hr style={{marginRight:"7.5%"}}></hr>
+                            </div>
+                            
+                                <div style={{display:"flex",  marginRight:"7.5%"}}>
+                                    <p style={{overflow:"hidden",textOverflow: "ellipsis", width:"50%", whiteSpace:"nowrap"}}>
+                                        <b>Index: </b>{this.state.index}</p>
+                                    <p style={{textAlign:"right", flex:"1"}}>
+                                        <b>Status: </b><b style={statusColors(this.state.status)}>{this.state.status}</b></p>
+                                </div>
+                            
+                            <hr style={{marginRight:"7.5%", marginBottom:"7.5%"}}></hr>
+                        </div>
+                    </Popup>
+                :
+                    <div></div>
+            }
+          <TreeTable
+            value={treeValue}
+            onChange={this.handleOnChange}
+            headerHeight={50}
+            height={treeValue.height}
+            >
+    
+            <TreeTable.Column grow={1.90}
+              renderCell={this.renderIndexCell}
+              renderHeaderCell={() => <span>Course</span>}/>
 
-          <TreeTable.Column grow={0.5}
-            renderCell={this.renderSecondCell}
-            renderHeaderCell={() => <span>Code</span>}
-            />
+            <TreeTable.Column grow={0.5}
+              renderCell={this.renderSecondCell}
+              renderHeaderCell={() => <span>Code</span>}
+              />
 
-          <TreeTable.Column grow={0.35}
-            renderCell={this.renderThirdCell}
-            renderHeaderCell={() => <span>Credits</span>}
-            />
+            <TreeTable.Column grow={0.35}
+              renderCell={this.renderThirdCell}
+              renderHeaderCell={() => <span>Credits</span>}
+              />
 
-          <TreeTable.Column 
-            renderCell={this.renderFourthCell}
-            renderHeaderCell={() => <span>Section</span>}
-            />
+            <TreeTable.Column 
+              renderCell={this.renderFourthCell}
+              renderHeaderCell={() => <span>Section</span>}
+              />
 
-          <TreeTable.Column 
-            renderCell={this.renderFifthCell}
-            renderHeaderCell={() => <span>Schedule</span>}
-            />
+            <TreeTable.Column 
+              renderCell={this.renderFifthCell}
+              renderHeaderCell={() => <span>Schedule</span>}
+              />
 
-          <TreeTable.Column 
-            renderCell={this.renderSixthCell}
-            renderHeaderCell={() => <span>Instructor</span>}
-            />
+            <TreeTable.Column 
+              renderCell={this.renderSixthCell}
+              renderHeaderCell={() => <span>Instructor</span>}
+              />
 
-          <TreeTable.Column grow={0.75}
-            renderCell={this.renderAddCell}
-            renderHeaderCell={() => <span></span>}
-            />
-            
-        </TreeTable>
+            <TreeTable.Column grow={0.75}
+              renderCell={this.renderAddCell}
+              renderHeaderCell={() => <span></span>}
+              />
+              
+          </TreeTable>
+          </div>
      );
     }
   
@@ -156,7 +198,51 @@ class CourseTable extends React.Component {
     }
 
     onCourseAdd = (index) => {
-      // index
+      let courseList = []
+      for(let i = 1; i <= 8; i++){
+          let val = index
+
+          if(val != ''){
+              courseList.push({val:val, reqop:'ADD'})
+          }
+      }
+
+      CVRequest(courseList, this.courseChangeCallback) 
+    }
+
+    resultCodes(i){
+      switch(i){
+          case(1):
+              return "Added!"
+          case(2):
+              return "Insufficient Prereqs"
+          case(3):
+              return "Timing Conflict"
+          case(5):
+              return "Invalid Index"
+          case(6):
+              return "Server Error (0)"
+          case(7):
+              return "Server Error (1)"
+      }
+    }
+    courseChangeCallback = ( serverResponse, action ) =>{
+      // eventually put in logic that will look at the serverResponse and decide whether to call validateLogin or just show error
+      let responseMap = serverResponse
+      let index
+      let status
+      for(const [key, value] of Object.entries(responseMap.map_)){
+        index = key
+        status = value  
+      }
+      let ind = status.key
+      let stat = this.resultCodes(status.value)
+      this.setState({index:ind, status:stat})
+      if(status.value == 1){
+        let map = this.state.registrationsMap
+        map.add(ind)
+        this.setState({registrationsMap:map})
+      }
     }
 
     renderAddCell = (row) => {
@@ -172,7 +258,7 @@ class CourseTable extends React.Component {
               ?
                 <button class="courseTable-addBtn" style={{pointerEvents:"none", textDecoration:"none", border:"none", fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"darkgreen"}}>Added!</button>
               :
-                <button onClick={this.onCourseAdd(row.data.index)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
+                <button onClick={() => this.onCourseAdd(row.data.index)} class="courseTable-addBtn" style={{fontSize: this.state.childrenFontSize, backgroundColor:"#00000000", fontWeight:"600", color:"#0d6efd"}}>Add</button>
             :
               (row.data.name != null)
               ?
