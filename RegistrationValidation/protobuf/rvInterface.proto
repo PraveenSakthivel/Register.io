@@ -5,11 +5,12 @@ syntax="proto3";
 package rvInterface;
 
 message Student {
-    string NetId = 1;
+    string Token= 1;
 }
 
 message Response{
     bool Eligible = 1;
+    int64 Time = 2;
 }
 
 service RegistrationValidation {

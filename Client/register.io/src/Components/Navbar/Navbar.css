@@ -1,0 +1,61 @@
+.navbar{
+    background-image: linear-gradient(var(--color-primary), var(--color-primary-dark));
+    width: 6.5%;
+    min-width: 95px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    text-align: center;
+    display: table;
+}
+
+.navbar-logo{
+    max-width: 75%;
+    min-width: 75px;
+    object-fit: contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15%;
+    margin-bottom: 20%;
+}
+
+.navbar-item{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 7.5%;
+    padding-bottom: 7.5%;
+    line-height: 1.2;
+    transition: .2s;
+}
+
+.navbar-item:hover{
+    background-color: white;
+    cursor: pointer;
+}
+
+.navbar-item p{
+    font-size: 1.4em;
+    margin-bottom: 5px;
+}
+
+.navbar-item a{
+    font-size: .8em;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+}
+
+.navbar-item:hover a{
+    color: black;
+}
+
+.navbar-selected {
+    background-color: white;
+}
+
+.navbar-selected a{
+    color: black;
+}

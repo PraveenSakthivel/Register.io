@@ -1,0 +1,11 @@
+syntax="proto3";
+
+package consumerState;
+
+option go_package = "./";
+
+message State{
+    int32 MaxSize = 1;
+    int32 CurrentSize = 2;
+    repeated string RegisteredStudents = 3;
+}

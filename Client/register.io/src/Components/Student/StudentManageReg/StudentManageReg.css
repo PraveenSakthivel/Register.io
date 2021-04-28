@@ -1,0 +1,120 @@
+.studentManageReg-registrationHeader{
+    display:flex;
+    margin-top: max(100px, 11%);
+    margin-bottom: 2.5%;
+}
+
+.studentManageReg-title{
+    background-color: rgb(255,255,255, .95);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding-top: 2.5%;
+    z-index: 10;
+} 
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,0.01);
+}
+
+.courseTable-container{
+    border: 2px solid rgb(236, 236, 236);
+    font-size: 15px;
+}
+
+.studentManageReg {
+    margin-bottom: 5%;
+}
+
+.dx-g-bs4-table-cell{
+    padding-top: 12px !important;
+    border-left: 1px solid rgb(224, 224, 224);
+}
+
+.studentManageReg a {
+    cursor:pointer;
+}
+
+.studentManageReg-radio{
+    border-color:  #6c757d;
+    color:  #6c757d;
+    font-weight: 500;
+    transition: 0.1s;
+}
+
+.studentManageReg-radio:hover{
+    background-color:  #6c757d;
+    border-color:  #6c757d;
+    color: white;
+}
+
+input[type="radio"]:checked+.studentManageReg-radio{
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+input[type="radio"]:active+.studentManageReg-radio{
+    background-color:  #6c757d;
+    border-color:  #6c757d;
+    color: white;
+}
+
+input[type="radio"]:focus+.studentManageReg-radio{
+    box-shadow: none;
+    outline: none !important;
+}
+
+.registrationTable-popup {
+    background-color: white;
+    padding: 5%;
+    padding-left: 10%;
+    padding-top: 10%;
+    width: min(40vw, 500px);
+    height: min(80vh, 500px);
+}
+
+
+
+
+
+
+
+
+.countdown-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-family: 'Poppins';
+}
+
+.countdown-item {
+    color: #111;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    line-height: 20px;
+    margin: 10px;
+    padding-top: 10px;
+    position: relative;
+    width: 70px;
+    height: 70px;
+}
+
+.countdown-item span {
+    color: #333;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.countdown-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 70px;
+}

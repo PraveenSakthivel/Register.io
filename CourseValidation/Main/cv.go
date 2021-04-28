@@ -2,14 +2,21 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	classTiming "registerio/cv/main/classtiming"
+	data "registerio/cv/main/database"
 	prereqInterface "registerio/cv/main/prereq"
 	cvInterface "registerio/cv/main/protobuf"
+	secret "registerio/cv/main/secrets"
+
 	"strconv"
 	"time"
 
@@ -17,33 +24,27 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/dgrijalva/jwt-go"
-	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 )
 
 var debug = false
-
-const PrereqEndpoint = ":8081"
-
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
-)
 
 //Server instance
 type Server struct {
 	cvInterface.UnimplementedCourseValidationServer
 	svc         *sqs.SQS
 	queueLookup map[string]string
+	spns        map[string]data.SPN
+	timings     map[string][]*classTiming.ClassSlot
+	tokenSecret string
+	db          *data.DB
 }
 
 //Student representation for handling request
 type Student struct {
 	netID        string
 	classHistory map[string]int32
+	cases        map[int32]bool
 }
 
 type classResult struct {
@@ -54,7 +55,12 @@ type classResult struct {
 type userClaims struct {
 	NetID        string           `json:"name"`
 	ClassHistory map[string]int32 `json:"classHistory"`
+	SpecialCases map[string]bool  `json:"specialCases"`
 	jwt.StandardClaims
+}
+
+type token struct {
+	TokenSecret string
 }
 
 //debug print
@@ -64,74 +70,83 @@ func dprint(msg ...interface{}) {
 	}
 }
 
-func getQueues() (map[string]string, error) {
-	retval := make(map[string]string)
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		log.Println("Database error: ", err)
-		return nil, err
-	}
-	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		log.Println("Database error: ", err)
-		return nil, err
-	}
-
-	rows, err := db.Query("SELECT index, url FROM \"sqs queues\"")
-	if err != nil {
-		log.Println("Database error: ", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var queue string
-		var url string
-		err = rows.Scan(&queue, &url)
-		if err != nil {
-			log.Println("Error Parsing records: ", err)
-			return nil, err
-		}
-		retval[queue] = url
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Println("Error Parsing records: ", err)
-		return nil, err
-	}
-
-	return retval, nil
-}
-
 //Initialize any Server Variables
 func NewServer() *Server {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 	svc := sqs.New(sess)
-	queues, err := getQueues()
+
+	db, err := data.BuildDB()
+	if err != nil {
+		log.Fatal("ERROR: Cannot retrieve Database secret")
+	}
+	queues, err := db.GetQueues()
 	if err != nil {
 		log.Fatal("ERROR: Cannot retrieve queue lookup table")
 	}
-	s := &Server{svc: svc, queueLookup: queues}
+	spns, err := db.GetSPNs()
+	if err != nil {
+		log.Fatal("ERROR: Cannot retrieve SPNs")
+	}
+	timings, err := db.GetClassTimes()
+	if err != nil {
+		log.Fatal("ERROR: Cannot get class times")
+	}
+	tokenSecret, err := secret.GetTokenSecret("user/JWTEncryption")
+	if err != nil {
+		log.Fatal("ERROR: Cannot get token secret: ", err)
+	}
+	var Token token
+	json.Unmarshal([]byte(tokenSecret), &Token)
+
+	s := &Server{svc: svc, queueLookup: queues, spns: spns, timings: timings, tokenSecret: Token.TokenSecret, db: db}
 	return s
 }
 
+func (s *Server) Decrypt(encryptedString string) (string, error) {
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
+	enc, _ := hex.DecodeString(encryptedString)
+
+	block, err := aes.NewCipher([]byte(s.tokenSecret[0:32]))
+	if err != nil {
+		return "", err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	nonceSize := aesGCM.NonceSize()
+
+	if len(enc) < nonceSize {
+		return "", err
+	}
+
+	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
+
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		log.Print(err.Error())
+		return "", err
+	}
+
+	return fmt.Sprintf("%s", plaintext), nil
+}
+
 //Add secret decoding and check for validity
-func parseJWT(encodedToken string) (Student, error) {
-
-	secret := "55a441b7b7fea3448945d090e0e67b79"
-
-	token, err := jwt.ParseWithClaims(encodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *Server) parseJWT(encodedToken string) (Student, error) {
+	decodedToken, err := s.Decrypt(encodedToken)
+	if err != nil {
+		return Student{}, err
+	}
+	token, err := jwt.ParseWithClaims(decodedToken, &userClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("Invalid token %s", token.Header["alg"])
 		}
-		return []byte(secret), nil
+		return []byte(s.tokenSecret), nil
 	})
 
 	if err != nil {
@@ -140,12 +155,25 @@ func parseJWT(encodedToken string) (Student, error) {
 	}
 
 	if claims, ok := token.Claims.(*userClaims); ok {
-		return Student{netID: claims.NetID, classHistory: claims.ClassHistory}, nil
+		specCases := make(map[int32]bool)
+		for key, val := range claims.SpecialCases {
+			intkey, err := strconv.ParseInt(key, 10, 32)
+			if err != nil {
+				log.Println("Error Parsing Cases: ", err)
+				continue
+			}
+			specCases[int32(intkey)] = val
+		}
+		return Student{netID: claims.NetID, classHistory: claims.ClassHistory, cases: specCases}, nil
 	}
 	return Student{}, errors.New("Unable to Parse JWT")
 }
 
 func (s *Server) sendRegRequest(netID string, class *cvInterface.ClassOperations, c chan classResult) {
+	if _, ok := s.queueLookup[class.Index]; !ok {
+		c <- classResult{index: class.Index, err: errors.New("Unable to find SQS Queue url")}
+		return
+	}
 	url := s.queueLookup[class.Index]
 	var opString string
 	switch class.Op {
@@ -153,6 +181,8 @@ func (s *Server) sendRegRequest(netID string, class *cvInterface.ClassOperations
 		opString = "add"
 	case cvInterface.ReqOp_DROP:
 		opString = "drop"
+	case cvInterface.ReqOp_SPN:
+		opString = "spn"
 	default:
 		c <- classResult{index: class.Index, err: errors.New("Unsupported Operation")}
 		return
@@ -179,62 +209,65 @@ func (s *Server) sendRegRequest(netID string, class *cvInterface.ClassOperations
 	}
 	c <- classResult{index: class.Index, err: nil}
 	return
+
 }
 
-func checkPrereqs(classHistory map[string]int32, indices []string) (*prereqInterface.PrereqResponse, error) {
-	prereq := prereqInterface.PrereqRequest{ClassHistory: classHistory, Indices: indices}
-	var preResult *prereqInterface.PrereqResponse
-	var conn *grpc.ClientConn
-	var err = errors.New("TMP")
-	start := time.Now()
-	for err != nil {
-		conn, err = grpc.Dial(PrereqEndpoint, grpc.WithInsecure())
-		defer conn.Close()
-		if err != nil {
-			log.Panic("ERROR: Unable to connect to Prereq Endpoint: ", err)
-			continue
-		}
-		server := prereqInterface.NewPrereqValidationClient(conn)
-		ctx, _ := context.WithTimeout(context.Background(), 200*time.Millisecond)
-		preResult, err = server.CheckPrereqs(ctx, &prereq)
-		if err != nil {
-			log.Panic("ERROR: Unable to connect to Prereq Endpoint: ", err)
-		} else if time.Now().Sub(start).Milliseconds() > 1000 {
-			return nil, errors.New("Timeout")
-		}
+func (s *Server) getCurrentSchedule(netID string) (map[time.Weekday]*classTiming.ClassSlot, error) {
+	currentRegistration, err := s.db.GetCurrentRegistration(netID)
+	if err != nil {
+		return nil, err
 	}
-	return preResult, nil
+	return classTiming.BuildSchedule(currentRegistration, &s.timings)
 }
 
-func evalPrereqResults(preResult *prereqInterface.PrereqResponse, results *map[string]cvInterface.ResultClass, classes []*cvInterface.ClassOperations) []*cvInterface.ClassOperations {
-	eligibleClasses := make(map[string]bool)
-	resultMap := *results
-	var retVal []*cvInterface.ClassOperations
+func (s *Server) checkSchedandSend(operation *cvInterface.ClassOperations, currentSched map[time.Weekday]*classTiming.ClassSlot, netID string, c *(chan classResult)) (bool, error) {
+	classTime := s.timings[operation.Index]
+	good, err := classTiming.CheckTimesAndInsert(classTime, currentSched)
+	if err != nil {
+		return false, err
+	} else if !good {
+		return false, nil
+	}
+	go s.sendRegRequest(netID, operation, *c)
+	return true, nil
+}
 
-	for _, index := range preResult.InvalidIndices {
-		dprint("Invalid Index: ", index)
-		resultMap[index] = cvInterface.ResultClass_INVALID
+func (s *Server) AddSPN(ctx context.Context, req *cvInterface.SPNRequest) (*cvInterface.SPNResponse, error) {
+	response := cvInterface.SPNResponse{Valid: false, Result: cvInterface.ResultClass_ERROR}
+	student, err := s.parseJWT(req.Token)
+	dprint("Received SPN Request for User: ", student)
+	if err != nil {
+		log.Panic("ERROR Parsing JWT")
+		return &response, err
 	}
 
-	for index, status := range preResult.Results {
-		if status == false {
-			if resultMap[index] != cvInterface.ResultClass_INVALID {
-				dprint("Prereq Failed: ", index)
-				resultMap[index] = cvInterface.ResultClass_PREREQ
+	if spn, ok := s.spns[req.Spn]; ok {
+		if spn.User == student.netID && spn.Index == req.Index {
+			dprint("SPN Match")
+			response.Valid = true
+			currentSched, err := s.getCurrentSchedule(student.netID)
+			if err != nil {
+				return &response, err
 			}
-		} else {
-			dprint("Class OK: ", index)
-			eligibleClasses[index] = true
-			resultMap[index] = cvInterface.ResultClass_OK
+			c := make(chan classResult)
+			op := cvInterface.ClassOperations{Index: spn.Index, Op: cvInterface.ReqOp_SPN}
+			eligible, err := s.checkSchedandSend(&op, currentSched, student.netID, &c)
+			if err != nil {
+				return &response, err
+			} else if err == nil && !eligible {
+				response.Result = cvInterface.ResultClass_TIME
+				return &response, nil
+			}
+			result := <-c
+			if result.err != nil {
+				response.Result = cvInterface.ResultClass_OK
+				dprint("Sent Message to SQS: ", result.index)
+			}
+			return &response, result.err
 		}
 	}
 
-	for _, class := range classes {
-		if _, ok := eligibleClasses[class.Index]; ok {
-			retVal = append(retVal, class)
-		}
-	}
-	return retVal
+	return &response, nil
 }
 
 func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.RegistrationRequest) (*cvInterface.RegistrationResponse, error) {
@@ -243,32 +276,51 @@ func (s *Server) ChangeRegistration(ctx context.Context, req *cvInterface.Regist
 	var response cvInterface.RegistrationResponse
 	response.Results = make(map[string]cvInterface.ResultClass)
 	classes := req.Classes
+	c := make(chan classResult)
+	classReqsSent := 0
+
+	student, err := s.parseJWT(req.Token)
+	dprint("Received Request for User: ", student)
+	if err != nil {
+		return &response, err
+	}
+
+	drop := false
 	for _, class := range classes {
+		if class.Op == cvInterface.ReqOp_DROP {
+			drop = true
+			classReqsSent++
+			go s.sendRegRequest(student.netID, class, c)
+		}
 		response.Results[class.Index] = cvInterface.ResultClass_ERROR
 		indices = append(indices, class.Index)
 	}
 
-	student, err := parseJWT(req.Token)
-	dprint("Received Request for User: ", student)
-	if err != nil {
-		log.Panic("ERROR Parsing JWT")
-		return &response, nil
+	if !drop {
+		currentSched, err := s.getCurrentSchedule(student.netID)
+		if err != nil {
+			return &response, err
+		}
+
+		preResult, err := prereqInterface.CheckPrereqs(student.classHistory, indices, student.cases)
+		if err != nil {
+			return &response, err
+		}
+		dprint("Checking Prereqs")
+		eligibleClasses := prereqInterface.EvalPrereqResults(preResult, &results, req.Classes, debug)
+
+		for _, eligibleClass := range eligibleClasses {
+			eligible, err := s.checkSchedandSend(eligibleClass, currentSched, student.netID, &c)
+			//Request response defaults to error so no need to update
+			if err == nil && !eligible {
+				response.Results[eligibleClass.Index] = cvInterface.ResultClass_TIME
+			} else if err == nil && eligible {
+				classReqsSent++
+			}
+		}
 	}
 
-	preResult, err := checkPrereqs(student.classHistory, indices)
-	if err != nil {
-		log.Panic("ERROR Timed out trying to connect to prereq endpoint")
-		return &response, nil
-	}
-	dprint("Checking Prereqs")
-	eligibleClasses := evalPrereqResults(preResult, &results, req.Classes)
-	c := make(chan classResult)
-
-	for _, eligibleClass := range eligibleClasses {
-		go s.sendRegRequest(student.netID, eligibleClass, c)
-	}
-
-	for range eligibleClasses {
+	for i := 0; i < classReqsSent; i++ {
 		result := <-c
 		if result.err != nil {
 			results[result.index] = cvInterface.ResultClass_ERROR

@@ -2,20 +2,22 @@ package data
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	secret "registerio/cv/consumer/secrets"
 
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
-)
+type DB struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
 
 type Consumer struct {
 	Index              string
@@ -24,11 +26,11 @@ type Consumer struct {
 	CurrentSize        int
 }
 
-func RetrieveState(index string) (Consumer, error) {
+func (s *DB) RetrieveState(index string) (Consumer, error) {
 	retval := Consumer{}
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -41,7 +43,7 @@ func RetrieveState(index string) (Consumer, error) {
 		return retval, err
 	}
 
-	sql := `SELECT index, "registered students", "max size", "current size" FROM "course availability" WHERE index=$1;`
+	sql := `SELECT index, "max size" FROM "course availability" WHERE index=$1;`
 
 	rows, err := db.Query(sql, index)
 	if err != nil {
@@ -51,7 +53,7 @@ func RetrieveState(index string) (Consumer, error) {
 	defer rows.Close()
 
 	rows.Next()
-	err = rows.Scan(&retval.Index, pq.Array(&retval.RegisteredStudents), &retval.MaxSize, &retval.CurrentSize)
+	err = rows.Scan(&retval.Index, &retval.MaxSize)
 	if err != nil {
 		log.Println("Error Parsing records: ", err)
 		return retval, err
@@ -63,14 +65,39 @@ func RetrieveState(index string) (Consumer, error) {
 		return retval, err
 	}
 
+	sql = `SELECT ARRAY_AGG(netid), "class index"
+	FROM "course registration" WHERE "class index" = $1 GROUP BY 2;`
+
+	rows, err = db.Query(sql, index)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return retval, err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(pq.Array(&retval.RegisteredStudents), &retval.Index)
+		log.Println(retval.RegisteredStudents)
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			return retval, err
+		}
+
+		err = rows.Err()
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			return retval, err
+		}
+	}
+	retval.CurrentSize = len(retval.RegisteredStudents)
+
 	return retval, nil
 
 }
 
-func UpdateState(state Consumer) error {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+func (s *DB) AddRegistration(netID string, index string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -83,12 +110,51 @@ func UpdateState(state Consumer) error {
 		return err
 	}
 
-	sqlStatement := `UPDATE "course availability" SET "registered students" = $1, "current size" = $2 WHERE index = $3;`
+	sqlStatement := `INSERT INTO "course registration" VALUES($1,$2);`
 
-	_, err = db.Exec(sqlStatement, pq.Array(state.RegisteredStudents), state.CurrentSize, state.Index)
+	_, err = db.Exec(sqlStatement, netID, index)
 	if err != nil {
 		log.Println("Database error: ", err)
 		return err
 	}
 	return nil
+}
+
+func (s *DB) RemoveRegistration(netID string, index string) error {
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+
+	sqlStatement := `DELETE FROM "course registration" WHERE "netid" = $1 AND "class index" = $2;`
+
+	_, err = db.Exec(sqlStatement, netID, index)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return err
+	}
+	return nil
+}
+
+func BuildDB() (*DB, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DB{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
 }
