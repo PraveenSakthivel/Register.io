@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net"
-	"os"
 	data "registerio/cv/preqreq/database"
 	prereqInterface "registerio/cv/preqreq/protobuf"
 
@@ -19,7 +18,9 @@ type Server struct {
 	prereqInterface.UnimplementedPrereqValidationServer
 	indexLookup map[string]string //Matches Index to Course Number
 	//Prereq Store. Prereqs represented by a 2d array. Key is the class number. Each row is a prereq, each columns is a class that fulfills it (coreqs)
-	prereqs map[string][][]data.Prereq
+	prereqs      map[string][][]data.Prereq
+	specialCases map[string][]int32 //Checks cases like class year and major
+	db           *data.DB
 }
 
 //debug print
@@ -31,18 +32,41 @@ func dprint(msg ...interface{}) {
 
 //Initialize any Server Variables
 func NewServer() *Server {
-	prereqs, err := data.GetPrereqs()
+	db, err := data.BuildDB()
 	if err != nil {
-		os.Exit(3)
+		log.Fatal("Error building database: ", err)
+	}
+	prereqs, err := db.GetPrereqs()
+	if err != nil {
+		log.Fatal("Error retrieving prereqs: ", err)
 	}
 	dprint("Prereqs: ", prereqs)
-	lookup, err := data.GetLookups()
+	lookup, err := db.GetLookups()
 	if err != nil {
-		os.Exit(3)
+		log.Fatal("Error retrieving lookups: ", err)
 	}
 	dprint("Lookup: ", lookup)
-	s := &Server{indexLookup: lookup, prereqs: prereqs}
+	specialCases, err := db.GetSpecialCases()
+	if err != nil {
+		log.Fatal("Error retrieving special cases: ", err)
+	}
+	dprint("Special Cases: ", specialCases)
+	s := &Server{indexLookup: lookup, prereqs: prereqs, specialCases: specialCases, db: db}
 	return s
+}
+
+func (s *Server) checkCase(class string, cases map[int32]bool) bool {
+	reqs, ok := s.specialCases[class]
+	if !ok {
+		return true
+	}
+	for _, req := range reqs {
+		if _, ok := cases[req]; !ok {
+			dprint("Not eligible")
+			return false
+		}
+	}
+	return true
 }
 
 //Check if student is eligible to register for class
@@ -80,13 +104,14 @@ func (s *Server) CheckPrereqs(ctx context.Context, req *prereqInterface.PrereqRe
 			}
 			//if eligible has not been set to true after looping through all possibiltiies, not eligible to register
 			if !eligible {
-				response.Results[index] = false
 				break
 			}
 		}
-		//If after looping through all requirements, eligible is still true. Eligible to register
-		if eligible {
+		//If after looping through all requirements, eligible is still true. Check for special cases and then set final eligibility
+		if eligible && s.checkCase(class, req.Cases) {
 			response.Results[index] = true
+		} else {
+			response.Results[index] = false
 		}
 	}
 	return &response, nil
@@ -97,7 +122,7 @@ func main() {
 	flag.Parse()
 	debug = *debugPrnt
 
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal("Failed to listen on port 8081: ", err)
 	}

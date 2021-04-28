@@ -1,6 +1,8 @@
 all: proto prereq server test
 
 server:
+		go build database/data.go
+		go build classTiming/classTiming.go
 		go build cv.go
 
 proto:	
@@ -13,9 +15,11 @@ prereq:
 
 test: 	
 		go build -o tests/tests tests/tester.go
+		go build -o spntests/tests spntests/spntester.go
 
 clean:	
 		rm cv
 		rm tests/tests
+		rm spntests/tests
 
 .PHONY: prereq

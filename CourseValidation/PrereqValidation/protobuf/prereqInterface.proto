@@ -5,6 +5,7 @@ package prereqInterface;
 message PrereqRequest {
     map<string,int32> ClassHistory = 1;
     repeated string Indices = 2;
+    map<int32,bool> Cases = 3;
 }
 
 message PrereqResponse{

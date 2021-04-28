@@ -2,8 +2,10 @@ package data
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	secret "registerio/cv/preqreq/secrets"
 
 	"github.com/lib/pq"
 )
@@ -13,13 +15,13 @@ type Prereq struct {
 	Grade int
 }
 
-const (
-	host     = "database-1.cluster-cpecpwkhwaq9.us-east-1.rds.amazonaws.com"
-	port     = 5432
-	user     = "registerio"
-	password = "registera"
-	dbname   = "maindb"
-)
+type DB struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
+}
 
 func processPrereqs(rows *sql.Rows) (map[string][][]Prereq, error) {
 	retval := make(map[string][][]Prereq)
@@ -60,11 +62,11 @@ func processPrereqs(rows *sql.Rows) (map[string][][]Prereq, error) {
 	return retval, nil
 }
 
-func GetPrereqs() (map[string][][]Prereq, error) {
+func (s *DB) GetPrereqs() (map[string][][]Prereq, error) {
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -87,12 +89,12 @@ func GetPrereqs() (map[string][][]Prereq, error) {
 	return processPrereqs(rows)
 }
 
-func GetLookups() (map[string]string, error) {
+func (s *DB) GetLookups() (map[string]string, error) {
 	retval := make(map[string]string)
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Println("Database error: ", err)
@@ -129,4 +131,61 @@ func GetLookups() (map[string]string, error) {
 	}
 
 	return retval, nil
+}
+
+func (s *DB) GetSpecialCases() (map[string][]int32, error) {
+	retval := make(map[string][]int32)
+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		s.Host, s.Port, s.Username, s.Password, s.Dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer db.Close()
+	err = db.Ping()
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+
+	rows, err := db.Query("SELECT class, cases FROM \"class special cases\"")
+	if err != nil {
+		log.Println("Database error: ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var course string
+		var cases pq.Int32Array
+		err = rows.Scan(&course, &cases)
+		if err != nil {
+			log.Println("Error Parsing records: ", err)
+			return nil, err
+		}
+		retval[course] = cases
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Println("Error Parsing records: ", err)
+		return nil, err
+	}
+
+	return retval, nil
+}
+
+func BuildDB() (*DB, error) {
+	dbstring, err := secret.GetTokenSecret("prod/DB")
+	if err != nil {
+		return nil, err
+	}
+	retval := DB{}
+	err = json.Unmarshal([]byte(dbstring), &retval)
+	if err != nil {
+		return nil, err
+	}
+	return &retval, nil
 }

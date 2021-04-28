@@ -2,19 +2,23 @@ syntax="proto3";
 
 package cvInterface;
 
+option go_package = "./";
+
 enum ResultClass {
-    OK = 0; //Request processed successfuly
-    PREREQ = 1; //Request failed due to prereqs
+    NONE = 0; //Placeholder
+    OK = 1; //Request processed successfuly
+    PREREQ = 2; //Request failed due to prereqs
     TIME = 3; //Request failed due to timing constraints
-    SPN = 4; //Request failed due to invalid SPN
     INVALID = 5; //Request failed due to invalid index
     ERROR = 6; //Request failed due to Server side error
     SQS = 7; //Request failed due to error sending message to SQS
 }
 
 enum ReqOp {
-    ADD = 0;
-    DROP = 1;
+    NONEN = 0; //Placeholder
+    ADD = 1;
+    DROP = 2;
+    SPN = 3;
 }
 
 message ClassOperations{
@@ -30,7 +34,18 @@ message RegistrationRequest {
 message RegistrationResponse {
     map<string,ResultClass> Results = 1;
 }
+message SPNRequest {
+    string Token = 1;
+    string spn = 2;
+    string index = 3;
+}
+
+message SPNResponse {
+    bool valid = 1;
+    ResultClass result = 2;
+}
 
 service CourseValidation {
     rpc ChangeRegistration(RegistrationRequest) returns (RegistrationResponse){}
+    rpc AddSPN(SPNRequest) returns (SPNResponse){}
 }

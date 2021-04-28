@@ -1,20 +1,15 @@
 [
     {
         "Case": "Single Signup",
-        "Token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2MTQ1NjA1MDUsImV4cCI6MTY0NjA5NjUwNSwibmFtZSI6InBzOTMxIiwiY2xhc3NIaXN0b3J5Ijp7IjE5MjoxMDEiOjQwMCwiMTkyOjEwMiI6NDAwfX0.OiyDhMIu0xlgj2036vGH4JCDkELRWktvian3pdeOFSU",
+        "Token": "81597ffab6f9478c6a2edf57e8c499fddbb7d5141e38938a9d6fbece3ea2a549600563fbd7d67ab7652679337150c96be5f5afa7affd885654155b5d5b09b29869f178c30606ef2b2c2fb18376411e59d504bca46f8ce3315e46145dbeac812de0e4ed2049c014b9c35df34c411d5b367613ccb715d048fcd8058c2dc9735e740ad7489d6be57244d558b3267655be2a3ca1076e49127b6a9152e7ac73717f360f44f8a55baee9c9f140192cabbcded05fdbe845c7c06b315f81ee5dc0aa2634f4cc20f24f6494cf6abb9126c1ff80b5e214c1bbb76806feac7209e16d96cfa38df85a024e0cd70c7f17913c4cd1de80ac7703579d4aebfe87580c08c383f05c2daf2de696",
         "Classes": [
             {
-                "Index": "02345",
-                "Operation": "add"
-            },
-            {
-                "Index": "023456",
+                "Index": "14149",
                 "Operation": "add"
             }
         ],
         "Results": {
-            "02345": "OK",
-            "023456": "INVALID"
+            "14149": "OK"
         }
     }
 ]
