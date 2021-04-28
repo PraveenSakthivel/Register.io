@@ -248,7 +248,7 @@ class CourseTable extends React.Component {
     renderAddCell = (row) => {
       return(
         <div>
-          {(row.data.coursename == "Select a Department to Begin")
+          {(row.data.coursename == "Select a Department to Begin" || row.data.status == "Closed")
           ?
             <div></div>
           :

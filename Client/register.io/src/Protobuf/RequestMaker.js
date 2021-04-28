@@ -113,6 +113,16 @@ export const RVRequest = ( data, callback ) =>{
 const { ReceiveClassesParams, ClassAddStatusParams, ReceiveDepartmentsParams } = require('./Database/dbRequests_pb.js')
 const { DatabaseWrapperClient, default: dbRequests } = require('./Database/dbRequests_grpc_web_pb.js')
 
+export const VerifyAdd = ( data, callback ) => {
+    var client = new DatabaseWrapperClient(endpoint)
+
+    var request = new ClassAddStatusParams();
+    
+    client.classAddStatus(request, { "grpc_service" : "db" }, (err, response) => {
+        callback(response)
+    });
+}
+
 // data: {} (empty)
 // response: [ { Class }, { Class }, {..} ]
 export const DBRetrieveCourses = ( data, callback ) =>{

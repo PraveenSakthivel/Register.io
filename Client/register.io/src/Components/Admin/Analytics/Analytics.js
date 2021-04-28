@@ -106,9 +106,9 @@ class Dashboard extends React.Component {
             z.push(val)
         }
 
-        var dat = [{type: 'densitymapbox', lon: lon, lat: lat, z: z}];
+        var dat = [{type: 'densitymapbox', colorscale: 'YlOrRd', lon: lon, lat: lat, z: z}];
 
-        var layout = {width:1000, height:600, title:'Where Students Are On Campus', mapbox: {style: 'open-street-map', center: { lat:40.4963, lon:-74.4412 }, zoom: 12}};
+        var layout = {width:1000, height:600, title:'Where Students Are On Campus', mapbox: {style: 'open-street-map',  coloraxis: {colorscale: "Viridis"}, center: { lat:40.4963, lon:-74.4412 }, zoom: 12}};
 
         return <Plot
                     data={dat}
@@ -124,7 +124,7 @@ class Dashboard extends React.Component {
                     data={[
                     {type: 'bar', x: data[0].x, y: data[0].y},
                     ]}
-                    layout={ {width: 600, height: 400, title: 'Most Popular Section Times'} }
+                    layout={ {width: 1100, height: 400, title: 'Most Popular Section Times'} }
                 />
     }
 
