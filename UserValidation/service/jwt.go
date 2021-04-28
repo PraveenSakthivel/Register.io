@@ -1,25 +1,28 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
+	secret "main/secrets"
+
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joho/godotenv"
 )
 
 // JWTService ...
 type JWTService interface {
-	GenerateToken(email string, isUser bool) string
+	GenerateToken(netid string, isUser bool, usertype int, classes map[string]int, cases map[int]bool) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
 // Custom fields we can expand on
 type authCustomClaims struct {
-	Name string `json:"name"`
-	User bool   `json:"user"`
+	Name         string         `json:"name"`
+	User         bool           `json:"user"`
+	Type         int            `json:"type"`
+	ClassHistory map[string]int `json:"classhistory"`
+	SpecialCases map[int]bool   `json:"special"`
 	jwt.StandardClaims
 }
 
@@ -37,24 +40,30 @@ func JWTAuthService() JWTService {
 	}
 }
 
-// Get secret from .env file
-func getSecretKey() string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	secret := os.Getenv("SECRET")
-	if secret == "" {
-		secret = "secret"
-	}
-	return secret
+// TokenSecret ...
+type TokenSecret struct {
+	Token string `json:"TokenSecret"`
 }
 
-// generate token and seed with email information
-func (service *jwtServices) GenerateToken(email string, isUser bool) string {
+// Get secret from .env file
+func getSecretKey() string {
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	if tokenObj.Token == "" {
+		return "secret"
+	}
+	return tokenObj.Token
+}
+
+// generate token and seed with netid information
+func (service *jwtServices) GenerateToken(netid string, isUser bool, usertype int, classes map[string]int, cases map[int]bool) string {
 	claims := &authCustomClaims{
-		email,
+		netid,
 		isUser,
+		usertype,
+		classes,
+		cases,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
 			Issuer:    service.issure,

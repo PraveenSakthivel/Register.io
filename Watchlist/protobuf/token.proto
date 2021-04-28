@@ -1,0 +1,18 @@
+syntax="proto3";
+package Tokens;
+option go_package = ".;Tokens";
+
+message Token {
+      string token = 1;
+}
+
+message Addition{
+      string NetID = 1;
+      string Course = 2;
+}
+
+service LoginEndpoint {
+      rpc addToList(Addition) returns (Token){}
+      rpc dropFromList(Addition) returns (Token) {}
+      rpc pingList(Token) returns (Token) {}
+}

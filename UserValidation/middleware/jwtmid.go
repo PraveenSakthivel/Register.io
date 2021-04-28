@@ -5,44 +5,58 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"main/protobuf"
+	Tokens "main/protobuf"
+	secret "main/secrets"
 	"main/service"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/proto"
 )
 
+// TokenSecret ...
+type TokenSecret struct {
+	Token string `json:"TokenSecret"`
+}
+
 // Decrypt ...
 func Decrypt(encryptedString string) (decryptedString string) {
-	godotenv.Load("../.env")
-	key, _ := hex.DecodeString(os.Getenv("SECRET"))
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
 	enc, _ := hex.DecodeString(encryptedString)
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher([]byte(tokenObj.Token[0:32]))
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	nonceSize := aesGCM.NonceSize()
+
+	if len(enc) < nonceSize {
+		return ""
+	}
 
 	nonce, ciphertext := enc[:nonceSize], enc[nonceSize:]
 
 	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		log.Print(err.Error())
+		return ""
 	}
 
 	return fmt.Sprintf("%s", plaintext)
@@ -50,11 +64,13 @@ func Decrypt(encryptedString string) (decryptedString string) {
 
 // Encrypt ...
 func Encrypt(stringToEncrypt string) (encryptedString string) {
-	godotenv.Load("../.env")
-	key, _ := hex.DecodeString(os.Getenv("SECRET"))
+	tokenSecret, _ := secret.GetTokenSecret("user/JWTEncryption")
+	tokenObj := TokenSecret{}
+	json.Unmarshal([]byte(tokenSecret), &tokenObj)
+	// key, _ := hex.DecodeString(tokenObj.Token[0:32])
 	plaintext := []byte(stringToEncrypt)
 
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher([]byte(tokenObj.Token[0:32]))
 	if err != nil {
 		panic(err.Error())
 	}
@@ -71,6 +87,20 @@ func Encrypt(stringToEncrypt string) (encryptedString string) {
 
 	ciphertext := aesGCM.Seal(nonce, nonce, plaintext, nil)
 	return fmt.Sprintf("%x", ciphertext)
+}
+
+// GenBytesGRPC ...
+func GenBytesGRPC(data string) []byte {
+	bytes := []byte{}
+	stringvals := strings.Split(data, "+")
+	for index := 0; index < len(stringvals); index++ {
+		value, err := strconv.Atoi(stringvals[index])
+		if err != nil {
+			return nil
+		}
+		bytes = append(bytes, byte(value))
+	}
+	return bytes
 }
 
 // GenBytes ...
@@ -90,7 +120,7 @@ func GenBytes(data string) []byte {
 // ValidToken ...
 func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	// Get token from cookie and check if valid
-	prototoken := &protobuf.Token{}
+	prototoken := &Tokens.Token{}
 	cookiedata, err := c.Cookie("token")
 	if err != nil {
 		return nil, false
@@ -116,4 +146,29 @@ func ValidToken(c *gin.Context) (*jwt.Token, bool) {
 	fmt.Println(err)
 	return nil, false
 
+}
+
+// ValidTokenGRPC ...
+func ValidTokenGRPC(tokenInput *Tokens.Token) (*jwt.Token, bool) {
+	encTokenString := tokenInput.Token
+	fmt.Println(encTokenString)
+	// databytes := GenBytes(encTokenString)
+	// if databytes == nil || len(databytes) == 0 {
+	// return nil, false
+	// }
+	// newToken := &Tokens.Token{}
+	// proto.Unmarshal(databytes, newToken)
+	tokenString := Decrypt(encTokenString)
+	if tokenString == "" {
+		return nil, false
+	}
+	fmt.Println(tokenString)
+	token, err := service.JWTAuthService().ValidateToken(tokenString)
+	if token.Valid {
+		claims := token.Claims.(jwt.MapClaims)
+		fmt.Println(claims)
+		return token, true
+	}
+	fmt.Println(err)
+	return nil, false
 }
