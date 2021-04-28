@@ -1,0 +1,56 @@
+[
+    {
+        "Case": "Single Success Signup",
+        "history": {
+            "192:101": 400,
+            "192:102": 400
+        },
+        "requested": [
+            "02345"
+        ],
+        "results": {
+            "02345": true
+        }
+    },
+    {
+        "Case": "Multiple signup mix",
+        "history": {
+            "192:101": 400,
+            "192:102": 400
+        },
+        "requested": [
+            "02345",
+            "02355"
+        ],
+        "results": {
+            "02345": true,
+            "02355": false
+        }
+    },
+    {
+        "Case": "Single signup success 2",
+        "history": {
+            "192:101": 400,
+            "192:102": 400,
+            "198:201": 400
+        },
+        "requested": [
+            "02355"
+        ],
+        "results": {
+            "02355": true
+        }
+    },
+    {
+        "Case": "Single signup Fail",
+        "history": {
+            "192:101": 400
+        },
+        "requested": [
+            "02345"
+        ],
+        "results": {
+            "02345": false
+        }
+    }
+]
