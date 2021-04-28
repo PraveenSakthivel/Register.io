@@ -12,25 +12,22 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-// User ...
-type User struct {
-	Netid    string
-	Password string
-	Type     int
+// DBStruct ...
+type DBStruct struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Dbname   string `json:"dbname"`
 }
 
-// Students ...
-type Students struct {
-	Netid        string
-	Class        int
-	Credits      int
-	SpecialCases pq.Int64Array `gorm:"type:integer[]"`
-}
-
-// CourseRegistration ...
-type CourseRegistration struct {
-	Netid      string
-	ClassIndex string
+// BuildingLookup ...
+type BuildingLookup struct {
+	BldgNum string
+	Code    string
+	Lat     string
+	Long    string
+	Name    string
 }
 
 // Tabler ...
@@ -63,34 +60,13 @@ type Soc struct {
 	Credits         int
 }
 
-// CourseHistory ...
-type CourseHistory struct {
-	Netid        string
-	Semester     string
-	CourseNumber string
-	Grade        string
+// CourseRegistration ...
+type CourseRegistration struct {
+	Netid      string
+	ClassIndex string
 }
 
-// Token ...
-// type Token struct {
-// 	gorm.Model
-// 	User    User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-// 	Value   string
-// 	Expires time.Time
-// }
-
-// DB ...
-var DB *gorm.DB
-
-// DB ...
-type DBStruct struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Host     string `json:"host"`
-	Port     string `json:"port"`
-	Dbname   string `json:"dbname"`
-}
-
+// BuildDB ...
 func BuildDB() (*DBStruct, error) {
 	dbstring, err := secret.GetTokenSecret("prod/DB")
 	if err != nil {
@@ -104,8 +80,12 @@ func BuildDB() (*DBStruct, error) {
 	return &retval, nil
 }
 
+// DB ...
+var DB *gorm.DB
+
 // ConnectDB ...
 func ConnectDB() {
+
 	dbobj, _ := BuildDB()
 
 	dsn := url.URL{
@@ -121,13 +101,7 @@ func ConnectDB() {
 		panic("Failed to connect to DB")
 	}
 
-	database.AutoMigrate(&User{})
-	database.AutoMigrate(&CourseRegistration{})
-	database.AutoMigrate(&Soc{})
-	database.AutoMigrate(&CourseHistory{})
-	database.AutoMigrate(&Students{})
-	// database.Model(&Token{}).AddForeignKey("User", "users(Email)", "CASCADE", "CASCADE")
-	// database.AutoMigrate(&Token{})
+	database.AutoMigrate(&BuildingLookup{}, &CourseRegistration{}, &Soc{})
 	DB = database
 
 }

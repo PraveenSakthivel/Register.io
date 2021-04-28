@@ -70,6 +70,7 @@ func (s *Server) GetCurrentRegistrations(ctx context.Context, in *Tokens.Token) 
 			reg.Name = class.Name
 			reg.Section = class.Section
 			reg.MeetingLocation = class.MeetingLocation
+			reg.MeetingTimes = class.MeetingTimes
 			reg.Exam = class.Exam
 			reg.Instructors = class.Instructors
 			reg.Codes = class.Codes
